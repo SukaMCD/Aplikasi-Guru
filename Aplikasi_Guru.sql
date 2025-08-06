@@ -3,7 +3,7 @@ CREATE TABLE users (
   id_user SERIAL PRIMARY KEY,
   username VARCHAR(255) UNIQUE NOT NULL,
   password VARCHAR(255) NOT NULL,
-  level VARCHAR(20) NOT NULL -- admin, guru, viewer
+  level VARCHAR(20) NOT NULL CHECK (level IN ('admin', 'guru', 'murid'))
 );
 
 -- Tabel guru
@@ -13,7 +13,7 @@ CREATE TABLE guru (
   nip VARCHAR(100) NOT NULL
 );
 
--- Tabel kelas (versi disempurnakan)
+-- Tabel kelas
 CREATE TABLE kelas (
   id_kelas SERIAL PRIMARY KEY,
   nama_kelas VARCHAR(100) NOT NULL,
@@ -39,3 +39,4 @@ CREATE TABLE kegiatan (
   FOREIGN KEY (id_kelas) REFERENCES kelas(id_kelas),
   FOREIGN KEY (id_jenis_kegiatan) REFERENCES jenis_kegiatan(id_jenis_kegiatan)
 );
+-- :3

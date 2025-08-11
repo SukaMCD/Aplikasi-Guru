@@ -14,7 +14,11 @@
 -->
 <?php
 session_start(); // Pastikan session dimulai
-include '../koneksi.php'; // Pastikan koneksi database sudah benar
+if (!isset($_SESSION['user_id']) || $_SESSION['level'] !== 'admin') {
+  header('Location: ../murid/index.php'); // Redirect ke halaman login jika bukan admin
+  exit();
+}
+include '../../config/koneksi.php'; // Pastikan koneksi database sudah benar
 ?>
 
 <!DOCTYPE html>
@@ -26,7 +30,7 @@ include '../koneksi.php'; // Pastikan koneksi database sudah benar
   <link rel="apple-touch-icon" sizes="76x76" href="../assets/img/apple-icon.png">
   <link rel="icon" type="image/png" href="../gambar/favicon.png">
   <title>
-    Leafly Tea
+    Kegiatan Guru
   </title>
   <!--     Fonts and icons     -->
   <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet" />
@@ -458,7 +462,7 @@ include '../koneksi.php'; // Pastikan koneksi database sudah benar
                     <td class="border-end">
                       <div class="d-flex px-3 py-2">
                         <div class="d-flex flex-column justify-content-center">
-                          <h6 class="mb-0 text-sm font-weight-bold"><?php echo $row['id']; ?></h6>
+                          <h6 class="mb-0 text-sm font-weight-bold"><?php echo $row['id_user']; ?></h6>
                         </div>
                       </div>
                     </td>

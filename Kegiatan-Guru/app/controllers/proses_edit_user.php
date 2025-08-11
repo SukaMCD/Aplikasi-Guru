@@ -1,7 +1,7 @@
 <?php
 session_start();
 if (!isset($_SESSION['user_id']) || $_SESSION['level'] !== 'admin') {
-    header('Location: ../../murid/index.php');
+    header('Location: ../../public/murid/index.php');
     exit();
 }
 

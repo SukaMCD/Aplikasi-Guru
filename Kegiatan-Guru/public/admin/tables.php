@@ -693,7 +693,7 @@ include '../../config/koneksi.php'; // Pastikan koneksi database sudah benar
     function deleteUser(userId) {
       if (confirm('Apakah Anda yakin ingin menghapus user ini?')) {
         // Redirect ke halaman delete dengan ID user
-        window.location.href = 'delete_user.php?id=' + userId;
+        window.location.href = '../../app/controllers/proses_hapus_user.php?id=' + userId;
       }
     }
   </script>

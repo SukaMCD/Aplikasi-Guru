@@ -1,27 +1,15 @@
 <?php
-if (basename($_SERVER['PHP_SELF']) == 'koneksi.php') {
-    header("Location: index.php");
-    exit();
-}
+$host     = "127.0.0.1";
+$port     = "5432";
+$dbname   = "kegiatanguru_db";
+$user     = "postgres";
+$password = "admin";
 
-// Deteksi apakah sedang di localhost
-if ($_SERVER['SERVER_NAME'] == 'localhost') {
-    // Konfigurasi untuk localhost
-    $host = "localhost";
-    $user = "root"; // biasanya default di localhost
-    $password = ""; // kosong jika tidak ada password
-    $database = "Leafly"; // sesuaikan dengan nama database lokal kamu
+$conn = pg_connect("host=$host port=$port dbname=$dbname user=$user password=$password");
+
+if (!$conn) {
+    die("Koneksi gagal: " . pg_last_error());
 } else {
-    // Konfigurasi untuk hosting
-    $host = "localhost";
-    $user = "u993542331_adxuser";
-    $password = "BMXRider123";
-    $database = "u993542331_digital";
-}
-
-$koneksi = mysqli_connect($host, $user, $password, $database);
-if (mysqli_connect_errno()) {
-    echo "Koneksi database gagal: " . mysqli_connect_error();
-    exit();
+    echo "Koneksi berhasil";
 }
 ?>

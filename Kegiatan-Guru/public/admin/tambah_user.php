@@ -26,7 +26,7 @@ if (isset($_GET['msg'])) {
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <link rel="icon" type="image/png" href="../../gambar/favicon.png">
+    <link rel="icon" type="image/png" href="../assets/img/favicon.png">
     <title>Tambah User - Kegiatan Guru</title>
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet" />
     <link href="https://demos.creative-tim.com/argon-dashboard-pro/assets/css/nucleo-icons.css" rel="stylesheet" />

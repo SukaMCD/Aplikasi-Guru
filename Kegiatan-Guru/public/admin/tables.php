@@ -181,9 +181,9 @@ include '../../config/koneksi.php'; // Pastikan koneksi database sudah benar
               <a href="javascript:;" class="nav-link text-white p-0" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
                 <i class="fa fa-bell cursor-pointer"></i>
               </a>
-                </li>
-              </ul>
             </li>
+          </ul>
+          </li>
           </ul>
         </div>
       </div>
@@ -218,20 +218,33 @@ include '../../config/koneksi.php'; // Pastikan koneksi database sudah benar
                   </thead>
                   <tbody>
                     <?php
-                    // Query untuk mengambil semua data user + email
+                    // Query untuk mengambil semua data user + email, diurutkan berdasarkan id_user
                     $query_users = "SELECT id_user, username, email, level FROM users ORDER BY id_user";
                     $result_users = pg_query($conn, $query_users);
 
                     if ($result_users && pg_num_rows($result_users) > 0) {
+                      // Inisialisasi variabel counter
+                      $no = 1;
+
                       while ($row = pg_fetch_assoc($result_users)) {
                         $status_class = ($row['level'] == 'admin') ? 'bg-gradient-success' : 'bg-gradient-info';
                         $status_text = ($row['level'] == 'admin') ? 'Admin' : 'User';
+
+                        // Periksa level guru dan murid
+                        if ($row['level'] == 'guru') {
+                          $status_class = 'bg-gradient-warning';
+                          $status_text = 'Guru';
+                        } elseif ($row['level'] == 'murid') {
+                          $status_class = 'bg-gradient-primary';
+                          $status_text = 'Murid';
+                        }
+
                     ?>
                         <tr class="border-bottom">
                           <td class="border-end text-center">
                             <div class="d-flex justify-content-center px-3 py-2">
                               <div class="d-flex flex-column justify-content-center">
-                                <h6 class="mb-0 text-sm font-weight-bold"><?php echo $row['id_user']; ?></h6>
+                                <h6 class="mb-0 text-sm font-weight-bold"><?php echo $no; ?></h6>
                               </div>
                             </div>
                           </td>
@@ -256,6 +269,8 @@ include '../../config/koneksi.php'; // Pastikan koneksi database sudah benar
                           </td>
                         </tr>
                       <?php
+                        // Tingkatkan counter setiap kali loop berjalan
+                        $no++;
                       }
                     } else {
                       ?>

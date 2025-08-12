@@ -388,6 +388,7 @@ include '../../config/koneksi.php'; // Pastikan koneksi database sudah benar
                 <tbody>
                   <?php
                   if ($result_users && pg_num_rows($result_users) > 0) {
+                    $no = 1;
                     while ($row = pg_fetch_assoc($result_users)) {
                       $status_class = ($row['level'] == 'admin') ? 'bg-gradient-success' : 'bg-gradient-info';
                       $status_text = ($row['level'] == 'admin') ? 'Admin' : 'User';
@@ -396,7 +397,7 @@ include '../../config/koneksi.php'; // Pastikan koneksi database sudah benar
                         <td class="border-end">
                           <div class="d-flex px-3 py-2">
                             <div class="d-flex flex-column justify-content-center">
-                              <h6 class="mb-0 text-sm font-weight-bold"><?php echo $row['id_user']; ?></h6>
+                              <h6 class="mb-0 text-sm font-weight-bold"><?php echo $no++; ?></h6>
                             </div>
                           </div>
                         </td>

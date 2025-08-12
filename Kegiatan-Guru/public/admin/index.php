@@ -28,15 +28,15 @@ include '../../config/koneksi.php'; // Pastikan koneksi database sudah benar
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <link rel="apple-touch-icon" sizes="76x76" href="../assets/img/apple-icon.png">
-  <link rel="icon" type="image/png" href="../gambar/favicon.png">
+  <link rel="icon" type="image/png" href="../../gambar/favicon.png">
   <title>
     Kegiatan Guru
   </title>
   <!--     Fonts and icons     -->
   <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet" />
   <!-- Nucleo Icons -->
-  <link href="https://demos.creative-tim.com/argon-dashboard-pro/../assets/css/nucleo-icons.css" rel="stylesheet" />
-  <link href="https://demos.creative-tim.com/argon-dashboard-pro/../assets/css/nucleo-svg.css" rel="stylesheet" />
+  <link href="https://demos.creative-tim.com/argon-dashboard-pro/assets/css/nucleo-icons.css" rel="stylesheet" />
+  <link href="https://demos.creative-tim.com/argon-dashboard-pro/assets/css/nucleo-svg.css" rel="stylesheet" />
   <!-- Font Awesome Icons -->
   <script src="https://kit.fontawesome.com/42d5adcbca.js" crossorigin="anonymous"></script>
   <!-- CSS Files -->
@@ -57,7 +57,7 @@ include '../../config/koneksi.php'; // Pastikan koneksi database sudah benar
     <div class="collapse navbar-collapse  w-auto " id="sidenav-collapse-main">
       <ul class="navbar-nav">
         <li class="nav-item">
-          <a class="nav-link active" href="index.php">
+          <a class="nav-link" href="index.php">
             <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
               <i class="ni ni-tv-2 text-dark text-sm opacity-10"></i>
             </div>
@@ -108,7 +108,7 @@ include '../../config/koneksi.php'; // Pastikan koneksi database sudah benar
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link " href="logout.php">
+          <a class="nav-link " href="../../app/controllers/proses_logout.php">
             <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
               <i class="ni ni-single-copy-04 text-dark text-sm opacity-10"></i>
             </div>
@@ -159,7 +159,7 @@ include '../../config/koneksi.php'; // Pastikan koneksi database sudah benar
           </div>
           <ul class="navbar-nav  justify-content-end">
             <li class="nav-item d-flex align-items-center">
-              <a href="logout.php" class="nav-link text-white font-weight-bold px-0">
+              <a href="../../app/controllers/proses_logout.php" class="nav-link text-white font-weight-bold px-0">
                 <i class="fa fa-sign-out me-sm-1"></i>
                 <span class="d-sm-inline d-none">Logout</span>
               </a>

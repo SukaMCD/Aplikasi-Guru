@@ -1,0 +1,2 @@
+RewriteEngine On
+RewriteRule ^$ Kegiatan-Guru/public/auth/login.php [L]

@@ -190,6 +190,18 @@ include '../../config/koneksi.php'; // Pastikan koneksi database sudah benar
       </div>
     </nav>
     <!-- End Navbar -->
+    <?php
+    // Query untuk menghitung jumlah user dengan level 'guru'
+    $query_guru = "SELECT COUNT(*) FROM users WHERE level = 'guru'";
+    $result_guru = pg_query($conn, $query_guru);
+
+    // Ambil hasil query
+    $total_guru = 0;
+    if ($result_guru) {
+      $row = pg_fetch_row($result_guru);
+      $total_guru = $row[0];
+    }
+    ?>
     <div class="container-fluid py-4">
       <div class="row">
         <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
@@ -198,93 +210,123 @@ include '../../config/koneksi.php'; // Pastikan koneksi database sudah benar
               <div class="row">
                 <div class="col-8">
                   <div class="numbers">
-                    <p class="text-sm mb-0 text-uppercase font-weight-bold">Today's Money</p>
+                    <p class="text-sm mb-0 text-uppercase font-weight-bold">Jumlah Guru</p>
                     <h5 class="font-weight-bolder">
-                      $53,000
+                      <?php echo $total_guru; ?>
                     </h5>
-                    <p class="mb-0">
-                      <span class="text-success text-sm font-weight-bolder">+55%</span>
-                      since yesterday
+                    <p class="mb-0 text-success text-sm font-weight-bolder">
+                      Guru Terdaftar
                     </p>
                   </div>
                 </div>
                 <div class="col-4 text-end">
                   <div class="icon icon-shape bg-gradient-primary shadow-primary text-center rounded-circle">
-                    <i class="ni ni-money-coins text-lg opacity-10" aria-hidden="true"></i>
+                    <i class="ni ni-single-02 text-lg opacity-10" aria-hidden="true"></i>
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
+        <?php
+        // Query untuk menghitung jumlah user dengan level 'murid'
+        $query_murid = "SELECT COUNT(*) FROM users WHERE level = 'murid'";
+        $result_murid = pg_query($conn, $query_murid);
+        // Ambil hasil query
+        $total_murid = 0;
+        if ($result_murid) {
+          $row = pg_fetch_row($result_murid);
+          $total_murid = $row[0];
+        }
+        ?>
         <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
           <div class="card">
             <div class="card-body p-3">
               <div class="row">
                 <div class="col-8">
                   <div class="numbers">
-                    <p class="text-sm mb-0 text-uppercase font-weight-bold">Today's Users</p>
+                    <p class="text-sm mb-0 text-uppercase font-weight-bold">Jumlah Murid</p>
                     <h5 class="font-weight-bolder">
-                      2,300
+                      <?php echo $total_murid; ?>
                     </h5>
-                    <p class="mb-0">
-                      <span class="text-success text-sm font-weight-bolder">+3%</span>
-                      since last week
+                    <p class="mb-0 text-success text-sm font-weight-bolder">
+                      Murid Terdaftar
                     </p>
                   </div>
                 </div>
                 <div class="col-4 text-end">
                   <div class="icon icon-shape bg-gradient-danger shadow-danger text-center rounded-circle">
-                    <i class="ni ni-world text-lg opacity-10" aria-hidden="true"></i>
+                    <i class="ni ni-single-02 text-lg opacity-10" aria-hidden="true"></i>
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
+        <?php
+        // Query untuk menghitung jumlah kegiatan
+        $query_kegiatan = "SELECT COUNT(*) FROM kegiatan";
+        $result_kegiatan = pg_query($conn, $query_kegiatan);
+        // Ambil hasil query
+        $total_kegiatan = 0;
+        if ($result_kegiatan) {
+          $row = pg_fetch_row($result_kegiatan);
+          $total_kegiatan = $row[0];
+        }
+        ?>
         <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
           <div class="card">
             <div class="card-body p-3">
               <div class="row">
                 <div class="col-8">
                   <div class="numbers">
-                    <p class="text-sm mb-0 text-uppercase font-weight-bold">New Clients</p>
+                    <p class="text-sm mb-0 text-uppercase font-weight-bold">Total Kegiatan</p>
                     <h5 class="font-weight-bolder">
-                      +3,462
+                      <?php echo $total_kegiatan; ?>
                     </h5>
-                    <p class="mb-0">
-                      <span class="text-danger text-sm font-weight-bolder">-2%</span>
-                      since last quarter
+                    <p class="mb-0 text-success text-sm font-weight-bolder">
+                      Kegiatan Terdaftar
                     </p>
                   </div>
                 </div>
                 <div class="col-4 text-end">
                   <div class="icon icon-shape bg-gradient-success shadow-success text-center rounded-circle">
-                    <i class="ni ni-paper-diploma text-lg opacity-10" aria-hidden="true"></i>
+                    <i class="ni ni-single-copy-04 text-lg opacity-10" aria-hidden="true"></i>
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
+        <?php
+        // Query untuk menghitung jumlah kelas
+        $query_kelas = "SELECT COUNT(*) FROM kelas";
+        $result_kelas = pg_query($conn, $query_kelas);
+        // Ambil hasil query
+        $total_kelas = 0;
+        if ($result_kelas) {
+          $row = pg_fetch_row($result_kelas);
+          $total_kelas = $row[0];
+        }
+        ?>
         <div class="col-xl-3 col-sm-6">
           <div class="card">
             <div class="card-body p-3">
               <div class="row">
                 <div class="col-8">
                   <div class="numbers">
-                    <p class="text-sm mb-0 text-uppercase font-weight-bold">Sales</p>
+                    <p class="text-sm mb-0 text-uppercase font-weight-bold">Kelas</p>
                     <h5 class="font-weight-bolder">
-                      $103,430
+                      <?php echo $total_kelas; ?>
                     </h5>
-                    <p class="mb-0">
-                      <span class="text-success text-sm font-weight-bolder">+5%</span> than last month
+                    <p class="mb-0 text-success text-sm font-weight-bolder">
+                      Kelas Terdaftar
                     </p>
                   </div>
                 </div>
                 <div class="col-4 text-end">
                   <div class="icon icon-shape bg-gradient-warning shadow-warning text-center rounded-circle">
-                    <i class="ni ni-cart text-lg opacity-10" aria-hidden="true"></i>
+                    <i class="ni ni-hat-3 text-lg opacity-10" aria-hidden="true"></i>
                   </div>
                 </div>
               </div>
@@ -387,15 +429,29 @@ include '../../config/koneksi.php'; // Pastikan koneksi database sudah benar
                 </thead>
                 <tbody>
                   <?php
+                  $query_users = "SELECT id_user, username, email, level FROM users";
+                  $result_users = pg_query($conn, $query_users);
+
                   if ($result_users && pg_num_rows($result_users) > 0) {
                     $no = 1;
                     while ($row = pg_fetch_assoc($result_users)) {
-                      $status_class = ($row['level'] == 'admin') ? 'bg-gradient-success' : 'bg-gradient-info';
-                      $status_text = ($row['level'] == 'admin') ? 'Admin' : 'User';
+                      $status_class = '';
+                      $status_text = '';
+
+                      if ($row['level'] == 'admin') {
+                        $status_class = 'bg-gradient-success';
+                        $status_text = 'Admin';
+                      } elseif ($row['level'] == 'guru') {
+                        $status_class = 'bg-gradient-warning';
+                        $status_text = 'Guru';
+                      } elseif ($row['level'] == 'murid') {
+                        $status_class = 'bg-gradient-primary';
+                        $status_text = 'Murid';
+                      }
                   ?>
                       <tr class="border-bottom">
-                        <td class="border-end">
-                          <div class="d-flex px-3 py-2">
+                        <td class="border-end text-center">
+                          <div class="d-flex justify-content-center px-3 py-2">
                             <div class="d-flex flex-column justify-content-center">
                               <h6 class="mb-0 text-sm font-weight-bold"><?php echo $no++; ?></h6>
                             </div>
@@ -405,6 +461,7 @@ include '../../config/koneksi.php'; // Pastikan koneksi database sudah benar
                           <div class="d-flex px-3 py-2">
                             <div class="d-flex flex-column justify-content-center">
                               <h6 class="mb-0 text-sm font-weight-bold"><?php echo $row['username']; ?></h6>
+                              <p class="text-xs text-secondary mb-0"><?php echo $row['email']; ?></p>
                             </div>
                           </div>
                         </td>
@@ -420,7 +477,7 @@ include '../../config/koneksi.php'; // Pastikan koneksi database sudah benar
                   } else {
                     ?>
                     <tr>
-                      <td colspan="4" class="text-center py-4">
+                      <td colspan="5" class="text-center py-4">
                         <p class="text-xs text-secondary mb-0">Tidak ada data user</p>
                       </td>
                     </tr>
@@ -708,6 +765,8 @@ include '../../config/koneksi.php'; // Pastikan koneksi database sudah benar
   <script async defer src="https://buttons.github.io/buttons.js"></script>
   <!-- Control Center for Soft Dashboard: parallax effects, scripts for the example pages etc -->
   <script src="../assets/js/argon-dashboard.min.js?v=2.1.0"></script>
+  <!-- Bootstrap Icon -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </body>
 
 </html>

@@ -49,7 +49,7 @@ include '../../config/koneksi.php'; // Pastikan koneksi database sudah benar
       <i class="fas fa-times p-3 cursor-pointer text-secondary opacity-5 position-absolute end-0 top-0 d-none d-xl-none" aria-hidden="true" id="iconSidenav"></i>
       <a class="navbar-brand m-0" href=" https://demos.creative-tim.com/argon-dashboard/pages/dashboard.html " target="_blank">
         <img src="../assets/img/favicon.png" width="26px" height="26px" class="navbar-brand-img h-100" alt="main_logo">
-        <span class="ms-1 font-weight-bold">Kegiatan Guru</span>
+        <span class="ms-1 font-weight-bold">Activity Guru</span>
       </a>
     </div>
     <hr class="horizontal dark mt-0">
@@ -72,11 +72,11 @@ include '../../config/koneksi.php'; // Pastikan koneksi database sudah benar
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link " href="billing.php">
+          <a class="nav-link " href="kegiatan.php">
             <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
               <i class="ni ni-credit-card text-dark text-sm opacity-10"></i>
             </div>
-            <span class="nav-link-text ms-1">Billing</span>
+            <span class="nav-link-text ms-1">Activity</span>
           </a>
         </li>
         <li class="nav-item">
@@ -145,9 +145,9 @@ include '../../config/koneksi.php'; // Pastikan koneksi database sudah benar
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5">
             <li class="breadcrumb-item text-sm"><a class="opacity-5 text-white" href="javascript:;">Pages</a></li>
-            <li class="breadcrumb-item text-sm text-white active" aria-current="page">Tables</li>
+            <li class="breadcrumb-item text-sm text-white active" aria-current="page">Users</li>
           </ol>
-          <h6 class="font-weight-bolder text-white mb-0">Tables</h6>
+          <h6 class="font-weight-bolder text-white mb-0">Users</h6>
         </nav>
         <div class="collapse navbar-collapse mt-sm-0 mt-2 me-md-0 me-sm-4" id="navbar">
           <div class="ms-md-auto pe-md-3 d-flex align-items-center">

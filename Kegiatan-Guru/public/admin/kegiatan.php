@@ -6,19 +6,20 @@ if (!isset($_SESSION['user_id']) || $_SESSION['level'] !== 'admin') {
 }
 include '../../config/koneksi.php'; // Pastikan koneksi database sudah benar
 
-function updateStatusBasedOnDate($conn) {
-    $today = date('Y-m-d');
-    
-    // Update status to 'Berlangsung' for activities scheduled today that are still 'Direncanakan'
-    $query1 = "UPDATE kegiatan SET id_status = 2 
+function updateStatusBasedOnDate($conn)
+{
+  $today = date('Y-m-d');
+
+  // Update status to 'Berlangsung' for activities scheduled today that are still 'Direncanakan'
+  $query1 = "UPDATE kegiatan SET id_status = 2 
                WHERE DATE(tanggal) = '$today' 
                AND id_status = 1";
-    pg_query($conn, $query1);
-    
-    $query2 = "UPDATE kegiatan SET id_status = 3 
+  pg_query($conn, $query1);
+
+  $query2 = "UPDATE kegiatan SET id_status = 3 
                WHERE DATE(tanggal) < '$today' 
                AND id_status IN (1, 2)"; // Only update if status is 'Direncanakan' or 'Berlangsung'
-    pg_query($conn, $query2);
+  pg_query($conn, $query2);
 }
 
 // Call the auto-update function
@@ -281,34 +282,35 @@ updateStatusBasedOnDate($conn);
 
       <!-- Modified table to include database-connected status -->
       <div class="container-fluid py-4">
-      <div class="row">
-        <div class="col-12">
-          <div class="card mb-4">
-            <div class="card-header pb-0">
-              <div class="d-flex justify-content-between">
-                <h6>Daftar Kegiatan</h6>
-                <a href="tambah_kegiatan.php" class="btn btn-sm btn-outline-primary">Tambah Kegiatan</a>
+        <div class="row">
+          <div class="col-12">
+            <div class="card mb-4">
+              <div class="card-header pb-0">
+                <div class="d-flex justify-content-between">
+                  <h6>Daftar Kegiatan</h6>
+                  <a href="tambah_kegiatan.php" class="btn btn-sm btn-outline-primary">Tambah Kegiatan</a>
+                </div>
               </div>
-            </div>
-            <div class="card-body px-0 pt-0 pb-2">
-              <div class="table-responsive p-0">
-                <table class="table align-items-center mb-0 border">
-                  <thead>
-                    <tr class="border-bottom">
-                      <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 border-end">ID</th>
-                      <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 border-end">Guru</th>
-                      <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 border-end">Jenis Kegiatan</th>
-                      <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 border-end">Kelas</th>
-                      <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 border-end">Laporan</th>
-                      <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 border-end">Tanggal</th>
-                      <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 border-end">Status</th>
-                      <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 border-end">Detail</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <?php
-                    // Modified query to include status from database
-                    $query_kegiatan = "
+              <div class="card-body px-0 pt-0 pb-2">
+                <div class="table-responsive p-0">
+                  <table class="table align-items-center mb-0 border">
+                    <thead>
+                      <tr class="border-bottom">
+                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 border-end">ID</th>
+                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 border-end">Guru</th>
+                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 border-end">Jenis Kegiatan</th>
+                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 border-end">Kelas</th>
+                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 border-end">Laporan</th>
+                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 border-end">Waktu</th>
+                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 border-end">Tanggal</th>
+                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 border-end">Status</th>
+                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 border-end">Detail</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <?php
+                      // Modified query to include status from database
+                      $query_kegiatan = "
                       SELECT 
                         k.id_kegiatan,
                         g.nama_guru,
@@ -316,6 +318,8 @@ updateStatusBasedOnDate($conn);
                         CONCAT(kl.tingkat, ' ', kl.jurusan) as kelas,
                         k.tanggal,
                         k.laporan,
+                        k.jam_mulai,
+                        k.jam_selesai,
                         k.id_status,
                         sk.status as status_name
                       FROM kegiatan k
@@ -325,133 +329,149 @@ updateStatusBasedOnDate($conn);
                       LEFT JOIN status_kegiatan sk ON k.id_status = sk.id_status
                       ORDER BY k.tanggal DESC
                     ";
-                    $result_kegiatan = pg_query($conn, $query_kegiatan);
+                      $result_kegiatan = pg_query($conn, $query_kegiatan);
 
-                    if ($result_kegiatan && pg_num_rows($result_kegiatan) > 0) {
-                      $no = 1;
-                      while ($row = pg_fetch_assoc($result_kegiatan)) {
-                        // Set status badge color based on status
-                        $status_class = '';
-                        switch($row['id_status']) {
-                          case '1': // Direncanakan
-                            $status_class = 'bg-gradient-secondary';
-                            break;
-                          case '2': // Berlangsung
-                            $status_class = 'bg-gradient-warning';
-                            break;
-                          case '3': // Selesai
-                            $status_class = 'bg-gradient-success';
-                            break;
-                          case '4': // Dibatalkan
-                            $status_class = 'bg-gradient-danger';
-                            break;
-                          default:
-                            $status_class = 'bg-gradient-secondary';
+                      if ($result_kegiatan && pg_num_rows($result_kegiatan) > 0) {
+                        $no = 1;
+                        while ($row = pg_fetch_assoc($result_kegiatan)) {
+                          // Set status badge color based on status
+                          $status_class = '';
+                          switch ($row['id_status']) {
+                            case '1': // Direncanakan
+                              $status_class = 'bg-gradient-secondary';
+                              break;
+                            case '2': // Berlangsung
+                              $status_class = 'bg-gradient-warning';
+                              break;
+                            case '3': // Selesai
+                              $status_class = 'bg-gradient-success';
+                              break;
+                            case '4': // Dibatalkan
+                              $status_class = 'bg-gradient-danger';
+                              break;
+                            default:
+                              $status_class = 'bg-gradient-secondary';
+                          }
+
+                          $detail_class = 'bg-gradient-info';
+
+                          $laporan_short = !empty($row['laporan']) ?
+                            (strlen($row['laporan']) > 30 ? substr($row['laporan'], 0, 30) . '...' : $row['laporan']) :
+                            'N/A';
+                      ?>
+                          <tr class="border-bottom">
+                            <td class="border-end text-center">
+                              <div class="d-flex justify-content-center px-3 py-2">
+                                <h6 class="mb-0 text-sm font-weight-bold"><?php echo $no; ?></h6>
+                              </div>
+                            </td>
+                            <td class="border-end">
+                              <div class="d-flex px-3 py-2">
+                                <div class="d-flex flex-column justify-content-center">
+                                  <h6 class="mb-0 text-sm font-weight-bold"><?php echo $row['nama_guru'] ?? 'N/A'; ?></h6>
+                                </div>
+                              </div>
+                            </td>
+                            <td class="border-end">
+                              <div class="d-flex px-3 py-2">
+                                <div class="d-flex flex-column justify-content-center">
+                                  <h6 class="mb-0 text-sm"><?php echo $row['jenis_kegiatan'] ?? 'N/A'; ?></h6>
+                                </div>
+                              </div>
+                            </td>
+                            <td class="border-end">
+                              <div class="d-flex px-3 py-2">
+                                <div class="d-flex flex-column justify-content-center">
+                                  <h6 class="mb-0 text-sm"><?php echo $row['kelas'] ?? 'N/A'; ?></h6>
+                                </div>
+                              </div>
+                            </td>
+                            <td class="border-end">
+                              <div class="d-flex px-3 py-2">
+                                <div class="d-flex flex-column justify-content-center">
+                                  <h6 class="mb-0 text-sm"><?php echo $laporan_short; ?></h6>
+                                </div>
+                              </div>
+                            </td>
+                            <td class="border-end">
+                              <div class="d-flex px-3 py-2">
+                                <div class="d-flex flex-column justify-content-center">
+                                  <h6 class="mb-0 text-sm">
+                                    <?php
+                                    if (!empty($row['jam_mulai']) && !empty($row['jam_selesai'])) {
+                                      echo date('H:i', strtotime($row['jam_mulai'])) . ' - ' . date('H:i', strtotime($row['jam_selesai']));
+                                    } else {
+                                      echo 'N/A';
+                                    }
+                                    ?>
+                                  </h6>
+                                </div>
+                              </div>
+                            </td>
+                            <td class="border-end">
+                              <div class="d-flex px-3 py-2">
+                                <div class="d-flex flex-column justify-content-center">
+                                  <h6 class="mb-0 text-sm"><?php echo date('d/m/Y', strtotime($row['tanggal'])); ?></h6>
+                                </div>
+                              </div>
+                            </td>
+                            <td class="border-end align-middle text-center text-sm">
+                              <span class="badge badge-sm <?php echo $status_class; ?>"><?php echo $row['status_name'] ?? 'N/A'; ?></span>
+                            </td>
+                            <td class="align-middle text-center">
+                              <!-- Modified Detail button to use badge style like status -->
+                              <span class="badge badge-sm <?php echo $detail_class; ?> cursor-pointer"
+                                onclick="showDetailModal('<?php echo $row['id_kegiatan']; ?>',
+                                                              '<?php echo addslashes($row['nama_guru'] ?? 'N/A'); ?>', 
+                                                              '<?php echo addslashes($row['jenis_kegiatan'] ?? 'N/A'); ?>', 
+                                                              '<?php echo addslashes($row['kelas'] ?? 'N/A'); ?>', 
+                                                              '<?php echo addslashes($row['laporan'] ?? 'Belum ada laporan'); ?>', 
+                                                              '<?php echo date('d/m/Y', strtotime($row['tanggal'])); ?>',
+                                                              '<?php echo (!empty($row['jam_mulai']) && !empty($row['jam_selesai'])) ? date('H:i', strtotime($row['jam_mulai'])) . ' - ' . date('H:i', strtotime($row['jam_selesai'])) : 'N/A'; ?>',
+                                                              '<?php echo $row['id_status']; ?>',
+                                                              '<?php echo addslashes($row['status_name'] ?? 'N/A'); ?>')">
+                                <i class="fas fa-eye me-1"></i>Detail
+                              </span>
+                            </td>
+                          </tr>
+                        <?php
+                          $no++;
                         }
-
-                        $detail_class = 'bg-gradient-info';
-
-                        $laporan_short = !empty($row['laporan']) ?
-                          (strlen($row['laporan']) > 30 ? substr($row['laporan'], 0, 30) . '...' : $row['laporan']) :
-                          'N/A';
-                    ?>
-                        <tr class="border-bottom">
-                          <td class="border-end text-center">
-                            <div class="d-flex justify-content-center px-3 py-2">
-                              <h6 class="mb-0 text-sm font-weight-bold"><?php echo $no; ?></h6>
-                            </div>
-                          </td>
-                          <td class="border-end">
-                            <div class="d-flex px-3 py-2">
-                              <div class="d-flex flex-column justify-content-center">
-                                <h6 class="mb-0 text-sm font-weight-bold"><?php echo $row['nama_guru'] ?? 'N/A'; ?></h6>
-                              </div>
-                            </div>
-                          </td>
-                          <td class="border-end">
-                            <div class="d-flex px-3 py-2">
-                              <div class="d-flex flex-column justify-content-center">
-                                <h6 class="mb-0 text-sm"><?php echo $row['jenis_kegiatan'] ?? 'N/A'; ?></h6>
-                              </div>
-                            </div>
-                          </td>
-                          <td class="border-end">
-                            <div class="d-flex px-3 py-2">
-                              <div class="d-flex flex-column justify-content-center">
-                                <h6 class="mb-0 text-sm"><?php echo $row['kelas'] ?? 'N/A'; ?></h6>
-                              </div>
-                            </div>
-                          </td>
-                          <td class="border-end">
-                            <div class="d-flex px-3 py-2">
-                              <div class="d-flex flex-column justify-content-center">
-                                <h6 class="mb-0 text-sm"><?php echo $laporan_short; ?></h6>
-                              </div>
-                            </div>
-                          </td>
-                          <td class="border-end">
-                            <div class="d-flex px-3 py-2">
-                              <div class="d-flex flex-column justify-content-center">
-                                <h6 class="mb-0 text-sm"><?php echo date('d/m/Y', strtotime($row['tanggal'])); ?></h6>
-                              </div>
-                            </div>
-                          </td>
-                          <td class="border-end align-middle text-center text-sm">
-                            <span class="badge badge-sm <?php echo $status_class; ?>"><?php echo $row['status_name'] ?? 'N/A'; ?></span>
-                          </td>
-                          <td class="align-middle text-center">
-                            <!-- Modified Detail button to use badge style like status -->
-                            <span class="badge badge-sm <?php echo $detail_class; ?> cursor-pointer"
-                              onclick="showDetailModal('<?php echo $row['id_kegiatan']; ?>',
-                                                           '<?php echo addslashes($row['nama_guru'] ?? 'N/A'); ?>', 
-                                                           '<?php echo addslashes($row['jenis_kegiatan'] ?? 'N/A'); ?>', 
-                                                           '<?php echo addslashes($row['kelas'] ?? 'N/A'); ?>', 
-                                                           '<?php echo addslashes($row['laporan'] ?? 'Belum ada laporan'); ?>', 
-                                                           '<?php echo date('d/m/Y', strtotime($row['tanggal'])); ?>',
-                                                           '<?php echo $row['id_status']; ?>',
-                                                           '<?php echo addslashes($row['status_name'] ?? 'N/A'); ?>')">
-                              <i class="fas fa-eye me-1"></i>Detail
-                            </span>
+                      } else {
+                        ?>
+                        <tr>
+                          <td colspan="8" class="text-center py-4">
+                            <p class="text-xs text-secondary mb-0">Belum ada data kegiatan</p>
                           </td>
                         </tr>
                       <?php
-                        $no++;
                       }
-                    } else {
                       ?>
-                      <tr>
-                        <td colspan="8" class="text-center py-4">
-                          <p class="text-xs text-secondary mb-0">Belum ada data kegiatan</p>
-                        </td>
-                      </tr>
-                    <?php
-                    }
-                    ?>
-                  </tbody>
-                </table>
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <footer class="footer pt-3  ">
-        <div class="container-fluid">
-          <div class="row align-items-center justify-content-lg-between">
-            <div class="col-lg-6 mb-lg-0 mb-4">
-              <div class="copyright text-center text-sm text-muted text-lg-start">
-                © <script>
-                  document.write(new Date().getFullYear())
-                </script>,
-                made with <i class="fa fa-heart"></i> by
-                <a href="https://www.creative-tim.com" class="font-weight-bold" target="_blank">Creative Tim</a>
-                for a better web.
+        <footer class="footer pt-3  ">
+          <div class="container-fluid">
+            <div class="row align-items-center justify-content-lg-between">
+              <div class="col-lg-6 mb-lg-0 mb-4">
+                <div class="copyright text-center text-sm text-muted text-lg-start">
+                  © <script>
+                    document.write(new Date().getFullYear())
+                  </script>,
+                  made with <i class="fa fa-heart"></i> by
+                  <a href="https://www.creative-tim.com" class="font-weight-bold" target="_blank">Creative Tim</a>
+                  for a better web.
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </footer>
-    </div>
+        </footer>
+      </div>
   </main>
 
   <!-- Modified Detail Modal with Status Editing -->
@@ -474,6 +494,12 @@ updateStatusBasedOnDate($conn);
               <div class="mb-3">
                 <label class="form-label font-weight-bold">Tanggal:</label>
                 <p id="modalTanggal" class="text-sm mb-0"></p>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="form-label font-weight-bold">Waktu:</label>
+                <p id="modalWaktu" class="text-sm mb-0"></p>
               </div>
             </div>
           </div>
@@ -535,22 +561,23 @@ updateStatusBasedOnDate($conn);
   <script>
     let currentKegiatanId = null;
 
-    function showDetailModal(id, guru, jenis, kelas, laporan, tanggal, statusId, statusName) {
+    function showDetailModal(id, guru, jenis, kelas, laporan, tanggal, waktu, statusId, statusName) {
       currentKegiatanId = id;
-      
+
       document.getElementById('modalGuru').textContent = guru;
       document.getElementById('modalJenis').textContent = jenis;
       document.getElementById('modalKelas').textContent = kelas;
       document.getElementById('modalLaporan').textContent = laporan;
       document.getElementById('modalTanggal').textContent = tanggal;
-      
+      document.getElementById('modalWaktu').textContent = waktu;
+
       // Set current status
       const currentStatusElement = document.getElementById('currentStatus');
       currentStatusElement.textContent = statusName;
-      
+
       // Set status badge color
       currentStatusElement.className = 'badge me-3 ';
-      switch(statusId) {
+      switch (statusId) {
         case '1': // Direncanakan
           currentStatusElement.className += 'bg-gradient-secondary';
           break;
@@ -564,7 +591,7 @@ updateStatusBasedOnDate($conn);
           currentStatusElement.className += 'bg-gradient-danger';
           break;
       }
-      
+
       // Set dropdown to current status
       document.getElementById('statusSelect').value = statusId;
 
@@ -575,68 +602,68 @@ updateStatusBasedOnDate($conn);
     // Status update functionality
     document.getElementById('updateStatusBtn').addEventListener('click', function() {
       const newStatusId = document.getElementById('statusSelect').value;
-      
+
       if (!currentKegiatanId || !newStatusId) {
         alert('Error: Missing data');
         return;
       }
-      
+
       // Show loading state
       this.disabled = true;
       this.textContent = 'Updating...';
-      
+
       // Send AJAX request
       const formData = new FormData();
       formData.append('id_kegiatan', currentKegiatanId);
       formData.append('id_status', newStatusId);
-      
+
       fetch('../../app/controllers/proses_update_status.php', {
-        method: 'POST',
-        body: formData
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          // Update current status display
-          const currentStatusElement = document.getElementById('currentStatus');
-          currentStatusElement.textContent = data.status_name;
-          
-          // Update badge color
-          currentStatusElement.className = 'badge me-3 ';
-          switch(newStatusId) {
-            case '1':
-              currentStatusElement.className += 'bg-gradient-secondary';
-              break;
-            case '2':
-              currentStatusElement.className += 'bg-gradient-warning';
-              break;
-            case '3':
-              currentStatusElement.className += 'bg-gradient-success';
-              break;
-            case '4':
-              currentStatusElement.className += 'bg-gradient-danger';
-              break;
+          method: 'POST',
+          body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            // Update current status display
+            const currentStatusElement = document.getElementById('currentStatus');
+            currentStatusElement.textContent = data.status_name;
+
+            // Update badge color
+            currentStatusElement.className = 'badge me-3 ';
+            switch (newStatusId) {
+              case '1':
+                currentStatusElement.className += 'bg-gradient-secondary';
+                break;
+              case '2':
+                currentStatusElement.className += 'bg-gradient-warning';
+                break;
+              case '3':
+                currentStatusElement.className += 'bg-gradient-success';
+                break;
+              case '4':
+                currentStatusElement.className += 'bg-gradient-danger';
+                break;
+            }
+
+            alert('Status berhasil diupdate!');
+
+            // Refresh page to update table
+            setTimeout(() => {
+              location.reload();
+            }, 1000);
+          } else {
+            alert('Error: ' + data.message);
           }
-          
-          alert('Status berhasil diupdate!');
-          
-          // Refresh page to update table
-          setTimeout(() => {
-            location.reload();
-          }, 1000);
-        } else {
-          alert('Error: ' + data.message);
-        }
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        alert('Terjadi kesalahan saat mengupdate status');
-      })
-      .finally(() => {
-        // Reset button state
-        this.disabled = false;
-        this.textContent = 'Update';
-      });
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('Terjadi kesalahan saat mengupdate status');
+        })
+        .finally(() => {
+          // Reset button state
+          this.disabled = false;
+          this.textContent = 'Update';
+        });
     });
 
     var win = navigator.platform.indexOf('Win') > -1;

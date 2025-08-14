@@ -590,7 +590,7 @@ updateStatusBasedOnDate($conn);
       formData.append('id_kegiatan', currentKegiatanId);
       formData.append('id_status', newStatusId);
       
-      fetch('update_status.php', {
+      fetch('../../app/controllers/proses_update_status.php', {
         method: 'POST',
         body: formData
       })

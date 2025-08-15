@@ -30,6 +30,10 @@ if (isset($_GET['msg'])) {
         $message = '<div class="alert alert-danger">Gagal menambahkan kegiatan karena masalah database!</div>';
     } elseif ($_GET['msg'] === 'error_empty') {
         $message = '<div class="alert alert-danger">Semua field harus diisi!</div>';
+    } elseif ($_GET['msg'] === 'error_time') {
+        $message = '<div class="alert alert-danger">Format waktu tidak valid!</div>';
+    } elseif ($_GET['msg'] === 'error_time_order') {
+        $message = '<div class="alert alert-danger">Jam selesai harus lebih besar dari jam mulai!</div>';
     }
 }
 ?>
@@ -66,7 +70,7 @@ if (isset($_GET['msg'])) {
                         <div class="card-body">
                             <?php echo $message; ?>
 
-                            <form action="../../app/controllers/proses_tambah_kegiatan.php" method="POST">
+                            <form action="../../app/controllers/proses_tambah_kegiatan.php" method="POST" onsubmit="return validateForm()">
                                 <div class="form-group">
                                     <label for="id_guru">Guru</label>
                                     <select class="form-control" id="id_guru" name="id_guru" required>
@@ -93,7 +97,6 @@ if (isset($_GET['msg'])) {
                                     </select>
                                 </div>
 
-                                <!-- Separate tingkat and jurusan dropdowns -->
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group">
@@ -125,7 +128,6 @@ if (isset($_GET['msg'])) {
                                     </div>
                                 </div>
 
-                                <!-- Hidden field for id_kelas that will be populated by JavaScript -->
                                 <input type="hidden" id="id_kelas" name="id_kelas" required>
 
                                 <div class="form-group">
@@ -134,6 +136,30 @@ if (isset($_GET['msg'])) {
                                         min="<?php echo date('Y-m-d'); ?>"
                                         value="<?php echo isset($_POST['tanggal']) ? htmlspecialchars($_POST['tanggal']) : ''; ?>"
                                         required>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="jam_mulai">Jam Mulai</label>
+                                            <input type="time" name="jam_mulai" class="form-control" id="jam_mulai"
+                                                value="<?php echo isset($_POST['jam_mulai']) ? htmlspecialchars($_POST['jam_mulai']) : ''; ?>"
+                                                required>
+                                            <!-- Added time format hint -->
+                                            <small class="form-text text-muted">Format: HH:MM (24 jam)</small>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="jam_selesai">Jam Selesai</label>
+                                            <input type="time" name="jam_selesai" class="form-control" id="jam_selesai"
+                                                value="<?php echo isset($_POST['jam_selesai']) ? htmlspecialchars($_POST['jam_selesai']) : ''; ?>"
+                                                required>
+                                            <!-- Added time format hint -->
+                                            <small class="form-text text-muted">Format: HH:MM (24 jam)</small>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div class="form-group">
@@ -151,7 +177,6 @@ if (isset($_GET['msg'])) {
         </div>
     </main>
 
-    <!-- Add JavaScript to handle tingkat and jurusan selection -->
     <script>
         // Store all kelas data
         const kelasData = [
@@ -206,11 +231,27 @@ if (isset($_GET['msg'])) {
                     idKelasField.value = matchingKelas.id;
                 } else {
                     idKelasField.value = '';
-                    // This case should not be reached with the new logic
                 }
             } else {
                 idKelasField.value = '';
             }
+        }
+
+        function validateForm() {
+            const jamMulai = document.getElementById('jam_mulai').value;
+            const jamSelesai = document.getElementById('jam_selesai').value;
+            
+            if (jamMulai && jamSelesai) {
+                const startTime = new Date('2000-01-01 ' + jamMulai);
+                const endTime = new Date('2000-01-01 ' + jamSelesai);
+                
+                if (endTime <= startTime) {
+                    alert('Jam selesai harus lebih besar dari jam mulai!');
+                    return false;
+                }
+            }
+            
+            return true;
         }
 
         // Add event listeners

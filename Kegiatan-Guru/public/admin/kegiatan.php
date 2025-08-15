@@ -190,16 +190,21 @@ updateStatusBasedOnDate($conn);
       $result_total = pg_query($conn, $query_total);
       $total_kegiatan = pg_fetch_assoc($result_total)['total'];
 
-      $query_bulan_ini = "SELECT COUNT(*) as total FROM kegiatan WHERE EXTRACT(MONTH FROM tanggal) = EXTRACT(MONTH FROM CURRENT_DATE) AND EXTRACT(YEAR FROM tanggal) = EXTRACT(YEAR FROM CURRENT_DATE)";
-      $result_bulan_ini = pg_query($conn, $query_bulan_ini);
-      $bulan_ini = pg_fetch_assoc($result_bulan_ini)['total'];
+
+      // Updated query to count planed activities based on status
+      $query_direncanakan = "SELECT COUNT(*) as total FROM kegiatan WHERE id_status = 1"; // 1 = Direncanakan
+      $result_direncanakan = pg_query($conn, $query_direncanakan);
+      $direncanakan = pg_fetch_assoc($result_direncanakan)['total'];
+
+      // Updated query to count ongoing activities based on status
+      $query_berlangsung = "SELECT COUNT(*) as total FROM kegiatan WHERE id_status = 2"; // 2 = berlangsung
+      $result_berlangsung = pg_query($conn, $query_berlangsung);
+      $berlangsung = pg_fetch_assoc($result_berlangsung)['total'];
 
       // Updated query to count completed activities based on status
       $query_selesai = "SELECT COUNT(*) as total FROM kegiatan WHERE id_status = 3"; // 3 = Selesai
       $result_selesai = pg_query($conn, $query_selesai);
       $selesai = pg_fetch_assoc($result_selesai)['total'];
-
-      $progress = $total_kegiatan > 0 ? round(($selesai / $total_kegiatan) * 100) : 0;
       ?>
       <div class="row">
         <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
@@ -227,13 +232,32 @@ updateStatusBasedOnDate($conn);
               <div class="row">
                 <div class="col-8">
                   <div class="numbers">
-                    <p class="text-sm mb-0 text-uppercase font-weight-bold">Bulan Ini</p>
-                    <h5 class="font-weight-bolder"><?php echo $bulan_ini; ?></h5>
+                    <p class="text-sm mb-0 text-uppercase font-weight-bold">Direncanakan</p>
+                    <h5 class="font-weight-bolder"><?php echo $direncanakan; ?></h5>
                   </div>
                 </div>
                 <div class="col-4 text-end">
-                  <div class="icon icon-shape bg-gradient-success shadow-success text-center rounded-circle">
+                  <div class="icon icon-shape bg-gradient-secondary shadow-secondary text-center rounded-circle">
                     <i class="ni ni-calendar-grid-58 text-lg opacity-10" aria-hidden="true"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+          <div class="card">
+            <div class="card-body p-3">
+              <div class="row">
+                <div class="col-8">
+                  <div class="numbers">
+                    <p class="text-sm mb-0 text-uppercase font-weight-bold">Berlangsung</p>
+                    <h5 class="font-weight-bolder"><?php echo $berlangsung; ?></h5>
+                  </div>
+                </div>
+                <div class="col-4 text-end">
+                  <div class="icon icon-shape bg-gradient-warning shadow-warning text-center rounded-circle">
+                    <i class="ni ni-building text-lg opacity-10" aria-hidden="true"></i>
                   </div>
                 </div>
               </div>
@@ -251,7 +275,7 @@ updateStatusBasedOnDate($conn);
                   </div>
                 </div>
                 <div class="col-4 text-end">
-                  <div class="icon icon-shape bg-gradient-info shadow-info text-center rounded-circle">
+                  <div class="icon icon-shape bg-gradient-success shadow-success text-center rounded-circle">
                     <i class="ni ni-check-bold text-lg opacity-10" aria-hidden="true"></i>
                   </div>
                 </div>
@@ -259,26 +283,6 @@ updateStatusBasedOnDate($conn);
             </div>
           </div>
         </div>
-        <div class="col-xl-3 col-sm-6">
-          <div class="card">
-            <div class="card-body p-3">
-              <div class="row">
-                <div class="col-8">
-                  <div class="numbers">
-                    <p class="text-sm mb-0 text-uppercase font-weight-bold">Progress</p>
-                    <h5 class="font-weight-bolder"><?php echo $progress; ?>%</h5>
-                  </div>
-                </div>
-                <div class="col-4 text-end">
-                  <div class="icon icon-shape bg-gradient-warning shadow-warning text-center rounded-circle">
-                    <i class="ni ni-chart-bar-32 text-lg opacity-10" aria-hidden="true"></i>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
 
       <!-- Modified table to include database-connected status -->
       <div class="container-fluid py-4">
@@ -356,7 +360,7 @@ updateStatusBasedOnDate($conn);
                           $detail_class = 'bg-gradient-info';
 
                           $laporan_short = !empty($row['laporan']) ?
-                            (strlen($row['laporan']) > 30 ? substr($row['laporan'], 0, 30) . '...' : $row['laporan']) :
+                            (strlen($row['laporan']) > 25 ? substr($row['laporan'], 0, 25) . '...' : $row['laporan']) :
                             'N/A';
                       ?>
                           <tr class="border-bottom">

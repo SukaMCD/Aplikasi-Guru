@@ -1,4 +1,4 @@
-# Validasi Konflik Waktu Kegiatan (Versi Diperbarui)
+# Validasi Konflik Waktu Kegiatan
 
 ## Deskripsi Fitur
 

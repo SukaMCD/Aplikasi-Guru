@@ -43,6 +43,8 @@ updateStatusBasedOnDate($conn);
   <link href="https://demos.creative-tim.com/argon-dashboard-pro/assets/css/nucleo-svg.css" rel="stylesheet" />
   <!-- Font Awesome Icons -->
   <script src="https://kit.fontawesome.com/42d5adcbca.js" crossorigin="anonymous"></script>
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <!-- CSS Files -->
   <link id="pagestyle" href="../assets/css/argon-dashboard.css?v=2.1.0" rel="stylesheet" />
 </head>
@@ -502,13 +504,13 @@ updateStatusBasedOnDate($conn);
               <div class="card h-100 border-0 shadow-sm">
                 <div class="card-header bg-light py-2">
                   <h6 class="mb-0 text-dark">
-                    <i class="fas fa-user me-2"></i>Informasi Guru & Kegiatan
+                    <i class="fas fa-user me-2"></i>Detail Pengajar
                   </h6>
                 </div>
                 <div class="card-body p-3">
                   <div class="mb-3">
-                    <label class="form-label font-weight-bold text-dark text-sm">
-                      <i class="fas fa-chalkboard-teacher me-1"></i>Nama Guru:
+                    <label class="form-label text-sm mb-1">
+                      <i class="fas fa-chalkboard-teacher me-1"></i>Nama Guru
                     </label>
                     <div class="d-flex gap-2">
                       <select id="modalGuruSelect" class="form-select form-select-sm flex-grow-1">
@@ -520,15 +522,15 @@ updateStatusBasedOnDate($conn);
                         }
                         ?>
                       </select>
-                      <button class="btn btn-primary btn-sm px-3" type="button" id="updateGuruBtn">
-                        <i class="fas fa-save me-1"></i>Update
+                      <button class="btn btn-primary btn-sm" type="button" id="updateGuruBtn">
+                        <i class="fas fa-save"></i>Simpan
                       </button>
                     </div>
                   </div>
                   
                   <div class="mb-3">
-                    <label class="form-label font-weight-bold text-dark text-sm">
-                      <i class="fas fa-tasks me-1"></i>Jenis Kegiatan:
+                    <label class="form-label text-sm mb-1">
+                      <i class="fas fa-tasks me-1"></i>Jenis Kegiatan
                     </label>
                     <div class="d-flex gap-2">
                       <select id="modalJenisSelect" class="form-select form-select-sm flex-grow-1">
@@ -540,20 +542,20 @@ updateStatusBasedOnDate($conn);
                         }
                         ?>
                       </select>
-                      <button class="btn btn-primary btn-sm px-3" type="button" id="updateJenisBtn">
-                        <i class="fas fa-save me-1"></i>Update
+                      <button class="btn btn-primary btn-sm" type="button" id="updateJenisBtn">
+                        <i class="fas fa-save"></i>Simpan
                       </button>
                     </div>
                   </div>
                   
                   <div class="mb-3">
-                    <label class="form-label font-weight-bold text-dark text-sm">
-                      <i class="fas fa-school me-1"></i>Kelas:
+                    <label class="form-label text-sm mb-1">
+                      <i class="fas fa-school me-1"></i>Kelas
                     </label>
                     <div class="row g-2 mb-2">
                       <div class="col-6">
-                        <label class="form-label text-xs text-muted">Tingkat:</label>
-                        <select id="modalTingkatSelect" class="form-select form-select-sm">
+                        <label class="form-label text-xs text-muted">Kelas:</label>
+                        <select id="modalTingkatSelect" class="form-select form-select-sm" placeholder="Tingkat">
                           <?php
                           $tingkat_modal_query = "SELECT DISTINCT tingkat FROM kelas ORDER BY tingkat";
                           $tingkat_modal_result = pg_query($conn, $tingkat_modal_query);
@@ -570,8 +572,8 @@ updateStatusBasedOnDate($conn);
                         </select>
                       </div>
                     </div>
-                    <button class="btn btn-primary btn-sm px-3 w-100" type="button" id="updateKelasBtn">
-                      <i class="fas fa-save me-1"></i>Update Kelas
+                    <button class="btn btn-primary btn-sm w-100" type="button" id="updateKelasBtn">
+                      <i class="fas fa-save me-1"></i>Simpan
                     </button>
                   </div>
                 </div>
@@ -583,14 +585,14 @@ updateStatusBasedOnDate($conn);
               <div class="card h-100 border-0 shadow-sm">
                 <div class="card-header bg-light py-2">
                   <h6 class="mb-0 text-dark">
-                    <i class="fas fa-calendar-alt me-2"></i>Waktu & Status
+                    <i class="fas fa-calendar-alt me-2"></i>Jadwal Kegiatan
                   </h6>
                 </div>
                 <div class="card-body p-3">
-                  <!-- Consistent date field with uniform button -->
+                  <!-- Tanggal field -->
                   <div class="mb-3">
-                    <label class="form-label font-weight-bold text-dark text-sm">
-                      <i class="fas fa-calendar me-1"></i>Tanggal:
+                    <label class="form-label text-sm mb-1">
+                      <i class="fas fa-calendar me-1"></i>Tanggal
                     </label>
                     <div class="d-flex gap-2">
                       <input type="date" id="modalTanggalInput" class="form-control form-control-sm flex-grow-1">
@@ -599,11 +601,32 @@ updateStatusBasedOnDate($conn);
                       </button>
                     </div>
                   </div>
-                  
-                  <!-- Improved time fields with consistent button styling -->
+
+                  <!-- Status Section -->
                   <div class="mb-3">
-                    <label class="form-label font-weight-bold text-dark text-sm">
-                      <i class="fas fa-clock me-1"></i>Waktu:
+                    <label class="form-label text-sm mb-1">
+                      <i class="fas fa-flag me-1"></i>Status
+                    </label>
+                    <div class="d-flex gap-2">
+                      <select id="statusSelect" class="form-select form-select-sm flex-grow-1">
+                        <?php
+                        $status_query = "SELECT id_status, status FROM status_kegiatan ORDER BY id_status";
+                        $status_result = pg_query($conn, $status_query);
+                        while ($status_row = pg_fetch_assoc($status_result)) {
+                          echo "<option value='{$status_row['id_status']}'>{$status_row['status']}</option>";
+                        }
+                        ?>
+                      </select>
+                      <button id="updateStatusBtn" class="btn btn-primary btn-sm px-3">
+                        <i class="fas fa-save me-1"></i>Update
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Waktu fields -->
+                  <div class="mb-3">
+                    <label class="form-label text-sm mb-1">
+                      <i class="fas fa-clock me-1"></i>Waktu
                     </label>
                     <div class="row g-2 mb-2">
                       <div class="col-6">
@@ -615,34 +638,9 @@ updateStatusBasedOnDate($conn);
                         <input type="time" id="modalWaktuSelesai" class="form-control form-control-sm">
                       </div>
                     </div>
-                    <button class="btn btn-primary btn-sm px-3 w-100" type="button" id="updateTimeBtn">
-                      <i class="fas fa-save me-1"></i>Update Waktu
+                    <button class="btn btn-primary btn-sm w-100" type="button" id="updateTimeBtn">
+                      <i class="fas fa-save me-1"></i>Update
                     </button>
-                  </div>
-                  
-                  <!-- Enhanced Status Section with consistent button -->
-                  <div class="mb-0">
-                    <label class="form-label font-weight-bold text-dark text-sm">
-                      <i class="fas fa-flag me-1"></i>Status:
-                    </label>
-                    <div class="mb-2">
-                      <span id="currentStatus" class="badge fs-6"></span>
-                    </div>
-                    <div class="d-flex gap-2">
-                      <select id="statusSelect" class="form-select form-select-sm flex-grow-1">
-                        <?php
-                        // Get all status options
-                        $status_query = "SELECT id_status, status FROM status_kegiatan ORDER BY id_status";
-                        $status_result = pg_query($conn, $status_query);
-                        while ($status_row = pg_fetch_assoc($status_result)) {
-                          echo "<option value='{$status_row['id_status']}'>{$status_row['status']}</option>";
-                        }
-                        ?>
-                      </select>
-                      <button id="updateStatusBtn" class="btn btn-primary btn-sm px-3">
-                        <i class="fas fa-sync-alt me-1"></i>Update
-                      </button>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -673,6 +671,9 @@ updateStatusBasedOnDate($conn);
         </div>
         
         <div class="modal-footer bg-light py-2">
+          <button type="button" class="btn btn-success btn-sm" id="updateAllBtn">
+            <i class="fas fa-save me-1"></i>Update Semua
+          </button>
           <button type="button" class="btn btn-secondary btn-sm" id="closeModalBtn">
             <i class="fas fa-times me-1"></i>Tutup
           </button>
@@ -693,6 +694,65 @@ updateStatusBasedOnDate($conn);
     let currentIdGuru = null;
     let currentIdJenis = null;
     let currentIdKelas = null;
+    let hasUnsavedChanges = false;
+    let isClosing = false;
+    
+    // Function to track changes
+    function trackChanges() {
+      hasUnsavedChanges = true;
+    }
+    
+    // Add change tracking to all form elements
+    document.addEventListener('DOMContentLoaded', function() {
+      const formElements = ['modalGuruSelect', 'modalJenisSelect', 'modalTingkatSelect', 
+                          'modalJurusanSelect', 'modalLaporanTextarea', 'modalTanggalInput',
+                          'modalWaktuMulai', 'modalWaktuSelesai', 'statusSelect'];
+      
+      formElements.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+          element.addEventListener('change', trackChanges);
+          if (element.tagName === 'TEXTAREA') {
+            element.addEventListener('input', trackChanges);
+          }
+        }
+      });
+    });
+
+    // Function to reset change tracking
+    function resetChangeTracking() {
+      hasUnsavedChanges = false;
+    }
+
+    // Function to show warning dialog
+    async function showUnsavedChangesWarning() {
+      if (!hasUnsavedChanges) return true;
+      
+      const result = await Swal.fire({
+        title: 'Perubahan Belum Disimpan!',
+        text: 'Anda memiliki perubahan yang belum disimpan. Apakah Anda yakin ingin menutup?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#5e72e4',
+        cancelButtonColor: '#f5365c',
+        confirmButtonText: 'Ya, Tutup',
+        cancelButtonText: 'Batal',
+        customClass: {
+          popup: 'rounded-4',
+          confirmButton: 'btn btn-sm rounded-3 px-4',
+          cancelButton: 'btn btn-sm rounded-3 px-4 me-2'
+        },
+        buttonsStyling: true,
+        width: '360px',
+        padding: '1em',
+        reverseButtons: true
+      });
+
+      if (result.isConfirmed) {
+        hasUnsavedChanges = false;
+      }
+      return result.isConfirmed;
+    }
 
     // Store all kelas data for modal
     const kelasData = [
@@ -713,6 +773,9 @@ updateStatusBasedOnDate($conn);
       currentIdJenis = idJenis;
       currentIdKelas = idKelas;
 
+      // Reset unsaved changes flag
+      hasUnsavedChanges = false;
+
       // Set dropdown values
       document.getElementById('modalGuruSelect').value = idGuru;
       document.getElementById('modalJenisSelect').value = idJenis;
@@ -729,10 +792,12 @@ updateStatusBasedOnDate($conn);
       
       document.getElementById('modalLaporanTextarea').value = laporan;
 
-      const dateObj = new Date(tanggal.split('/').reverse().join('-'));
-      const formattedDate = dateObj.toISOString().split('T')[0];
+      // Parse and format the date
+      const dateParts = tanggal.split('/');
+      const formattedDate = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
       document.getElementById('modalTanggalInput').value = formattedDate;
 
+      // Set time values
       if (waktu && waktu !== 'N/A') {
         const timeRange = waktu.split(' - ');
         if (timeRange.length === 2) {
@@ -744,32 +809,23 @@ updateStatusBasedOnDate($conn);
         document.getElementById('modalWaktuSelesai').value = '';
       }
 
-      // Set current status
-      const currentStatusElement = document.getElementById('currentStatus');
-      currentStatusElement.textContent = statusName;
-
-      // Set status badge color
-      currentStatusElement.className = 'badge fs-6 ';
-      switch (statusId) {
-        case '1': // Direncanakan
-          currentStatusElement.className += 'bg-gradient-secondary';
-          break;
-        case '2': // Berlangsung
-          currentStatusElement.className += 'bg-gradient-warning';
-          break;
-        case '3': // Selesai
-          currentStatusElement.className += 'bg-gradient-success';
-          break;
-        case '4': // Dibatalkan
-          currentStatusElement.className += 'bg-gradient-danger';
-          break;
-      }
-
       // Set dropdown to current status
       document.getElementById('statusSelect').value = statusId;
 
-      var modal = new bootstrap.Modal(document.getElementById('detailModal'));
-      modal.show();
+      // Get the modal element
+      const modalElement = document.getElementById('detailModal');
+
+      // Create or get the modal instance
+      let modalInstance = bootstrap.Modal.getInstance(modalElement);
+      if (!modalInstance) {
+        modalInstance = new bootstrap.Modal(modalElement, {
+          backdrop: 'static',  // Prevent closing when clicking outside
+          keyboard: false      // Prevent closing with Esc key
+        });
+      }
+      
+      // Show the modal
+      modalInstance.show();
     }
 
     // Function to populate jurusan dropdown in modal
@@ -907,23 +963,84 @@ updateStatusBasedOnDate($conn);
       populateModalJurusan(selectedTingkat);
     });
 
-    // Add event listener for close modal button
-    document.getElementById('closeModalBtn').addEventListener('click', function() {
-      // Close modal
-      const modal = bootstrap.Modal.getInstance(document.getElementById('detailModal'));
-      if (modal) {
-        modal.hide();
+    // Function to update all fields
+    async function updateAllFields() {
+      const updates = [
+        { field: 'guru', value: document.getElementById('modalGuruSelect').value },
+        { field: 'jenis', value: document.getElementById('modalJenisSelect').value },
+        { field: 'kelas', value: getModalKelasId() },
+        { field: 'tanggal', value: document.getElementById('modalTanggalInput').value },
+        { field: 'waktu', value: JSON.stringify({
+          jam_mulai: document.getElementById('modalWaktuMulai').value,
+          jam_selesai: document.getElementById('modalWaktuSelesai').value
+        })},
+        { field: 'status', value: document.getElementById('statusSelect').value },
+        { field: 'laporan', value: document.getElementById('modalLaporanTextarea').value }
+      ];
+
+      let success = true;
+      for (const update of updates) {
+        try {
+          const formData = new FormData();
+          formData.append('id_kegiatan', currentKegiatanId);
+          formData.append('field_type', update.field);
+          formData.append('value', update.value);
+
+          const response = await fetch('../../app/controllers/proses_update_kegiatan.php', {
+            method: 'POST',
+            body: formData
+          });
+          const data = await response.json();
+          if (!data.success) {
+            success = false;
+            showNotification(data.message, 'error');
+            break;
+          }
+        } catch (error) {
+          success = false;
+          showNotification('Terjadi kesalahan saat mengupdate data', 'error');
+          break;
+        }
       }
-      // Reload page after modal is hidden
-      setTimeout(() => {
-        location.reload();
-      }, 300);
+
+      if (success) {
+        showNotification('Semua data berhasil diupdate', 'success');
+        hasUnsavedChanges = false;
+        setTimeout(() => {
+          const modal = bootstrap.Modal.getInstance(document.getElementById('detailModal'));
+          modal.hide();
+          location.reload();
+        }, 1000);
+      }
+    }
+
+    // Add event listener for Update All button
+    document.getElementById('updateAllBtn').addEventListener('click', updateAllFields);
+
+    // Add event listener for close modal button
+    document.getElementById('closeModalBtn').addEventListener('click', async function() {
+      if (!hasUnsavedChanges || await showUnsavedChangesWarning()) {
+        const modal = bootstrap.Modal.getInstance(document.getElementById('detailModal'));
+        if (modal) {
+          modal.hide();
+          location.reload();
+        }
+      }
     });
 
     // Add event listener for modal hidden event (when clicking outside or pressing ESC)
-    document.getElementById('detailModal').addEventListener('hidden.bs.modal', function() {
-      // Reload page when modal is hidden
-      location.reload();
+    document.getElementById('detailModal').addEventListener('hide.bs.modal', async function(e) {
+      if (hasUnsavedChanges) {
+        e.preventDefault(); // Prevent modal from closing
+        if (await showUnsavedChangesWarning()) {
+          hasUnsavedChanges = false; // Reset the flag
+          const modal = bootstrap.Modal.getInstance(document.getElementById('detailModal'));
+          if (modal) {
+            modal.hide();
+            location.reload();
+          }
+        }
+      }
     });
 
     function updateField(fieldType, value, buttonElement, fieldName) {
@@ -945,6 +1062,7 @@ updateStatusBasedOnDate($conn);
         .then(response => response.json())
         .then(data => {
           if (data.success) {
+            resetChangeTracking(); // Reset change tracking after successful update
             if (fieldType === 'status') {
               const currentStatusElement = document.getElementById('currentStatus');
               currentStatusElement.textContent = data.status_name;
@@ -1058,24 +1176,28 @@ updateStatusBasedOnDate($conn);
     }
 
     function showNotification(message, type) {
-      // Create notification element
-      const notification = document.createElement('div');
-      notification.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
-      notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
-      notification.innerHTML = `
-        <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i>
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-      `;
-
-      document.body.appendChild(notification);
-
-      // Auto remove after 3 seconds
-      setTimeout(() => {
-        if (notification.parentNode) {
-          notification.remove();
+      const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+        customClass: {
+          popup: 'rounded-3 shadow-sm',
+          title: 'text-sm'
+        },
+        iconColor: type === 'success' ? '#2dce89' : '#f5365c',
+        didOpen: (toast) => {
+          toast.addEventListener('mouseenter', Swal.stopTimer)
+          toast.addEventListener('mouseleave', Swal.resumeTimer)
         }
-      }, 3000);
+      });
+
+      Toast.fire({
+        icon: type,
+        title: message,
+        padding: '0.5em 1em'
+      });
     }
   </script>
   <!-- Control Center for Soft Dashboard: parallax effects, scripts for the example pages etc -->

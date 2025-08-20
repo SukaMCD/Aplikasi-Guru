@@ -68,6 +68,80 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit();
         }
 
+        // Check for time conflict in the same class and date
+        $class_conflict_query = "
+            SELECT k.id_kegiatan, k.jam_mulai, k.jam_selesai, 
+                   g.nama_guru, jk.nama_kegiatan, kl.tingkat, kl.jurusan
+            FROM kegiatan k
+            JOIN guru g ON k.id_guru = g.id_guru
+            JOIN jenis_kegiatan jk ON k.id_jenis_kegiatan = jk.id_jenis_kegiatan
+            JOIN kelas kl ON k.id_kelas = kl.id_kelas
+            WHERE k.id_kelas = $1 
+            AND k.tanggal = $2
+            AND (
+                (k.jam_mulai <= $3::time AND k.jam_selesai > $3::time) OR
+                (k.jam_mulai < $4::time AND k.jam_selesai >= $4::time) OR
+                (k.jam_mulai >= $3::time AND k.jam_selesai <= $4::time)
+            )
+        ";
+        
+        $class_conflict_result = pg_query_params($conn, $class_conflict_query, array(
+            $id_kelas, 
+            $tanggal, 
+            $jam_mulai, 
+            $jam_selesai
+        ));
+        
+        if ($class_conflict_result && pg_num_rows($class_conflict_result) > 0) {
+            $conflict_data = pg_fetch_assoc($class_conflict_result);
+            $kelas_nama = $conflict_data['tingkat'] . ' ' . $conflict_data['jurusan'];
+            $guru_nama = $conflict_data['nama_guru'];
+            $jenis_kegiatan = $conflict_data['nama_kegiatan'];
+            $jam_mulai_existing = date('H:i', strtotime($conflict_data['jam_mulai']));
+            $jam_selesai_existing = date('H:i', strtotime($conflict_data['jam_selesai']));
+            
+            header('Location: ../../public/admin/tambah_kegiatan.php?msg=error_time_conflict&kelas=' . urlencode($kelas_nama) . '&tanggal=' . urlencode($tanggal) . '&jam=' . urlencode($jam_mulai . ' - ' . $jam_selesai) . '&guru=' . urlencode($guru_nama) . '&jenis=' . urlencode($jenis_kegiatan));
+            exit();
+        }
+        
+        // Check for teacher conflict (same teacher, same date, overlapping time, different class)
+        $teacher_conflict_query = "
+            SELECT k.id_kegiatan, k.jam_mulai, k.jam_selesai, 
+                   g.nama_guru, jk.nama_kegiatan, kl.tingkat, kl.jurusan
+            FROM kegiatan k
+            JOIN guru g ON k.id_guru = g.id_guru
+            JOIN jenis_kegiatan jk ON k.id_jenis_kegiatan = jk.id_jenis_kegiatan
+            JOIN kelas kl ON k.id_kelas = kl.id_kelas
+            WHERE k.id_guru = $1 
+            AND k.tanggal = $2
+            AND k.id_kelas != $3
+            AND (
+                (k.jam_mulai <= $4::time AND k.jam_selesai > $4::time) OR
+                (k.jam_mulai < $5::time AND k.jam_selesai >= $5::time) OR
+                (k.jam_mulai >= $4::time AND k.jam_selesai <= $5::time)
+            )
+        ";
+        
+        $teacher_conflict_result = pg_query_params($conn, $teacher_conflict_query, array(
+            $id_guru, 
+            $tanggal, 
+            $id_kelas,
+            $jam_mulai, 
+            $jam_selesai
+        ));
+        
+        if ($teacher_conflict_result && pg_num_rows($teacher_conflict_result) > 0) {
+            $conflict_data = pg_fetch_assoc($teacher_conflict_result);
+            $kelas_nama = $conflict_data['tingkat'] . ' ' . $conflict_data['jurusan'];
+            $guru_nama = $conflict_data['nama_guru'];
+            $jenis_kegiatan = $conflict_data['nama_kegiatan'];
+            $jam_mulai_existing = date('H:i', strtotime($conflict_data['jam_mulai']));
+            $jam_selesai_existing = date('H:i', strtotime($conflict_data['jam_selesai']));
+            
+            header('Location: ../../public/admin/tambah_kegiatan.php?msg=error_teacher_conflict&kelas=' . urlencode($kelas_nama) . '&tanggal=' . urlencode($tanggal) . '&jam=' . urlencode($jam_mulai . ' - ' . $jam_selesai) . '&guru=' . urlencode($guru_nama) . '&jenis=' . urlencode($jenis_kegiatan));
+            exit();
+        }
+
         $status_check = pg_query($conn, "SELECT id_status FROM status_kegiatan WHERE id_status = 1");
         if (!$status_check || pg_num_rows($status_check) === 0) {
             // Create default status if it doesn't exist

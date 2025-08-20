@@ -34,6 +34,32 @@ if (isset($_GET['msg'])) {
         $message = '<div class="alert alert-danger">Format waktu tidak valid!</div>';
     } elseif ($_GET['msg'] === 'error_time_order') {
         $message = '<div class="alert alert-danger">Jam selesai harus lebih besar dari jam mulai!</div>';
+    } elseif ($_GET['msg'] === 'error_time_conflict') {
+        $kelas = $_GET['kelas'] ?? 'Kelas tersebut';
+        $tanggal = $_GET['tanggal'] ?? 'tanggal tersebut';
+        $jam = $_GET['jam'] ?? 'waktu tersebut';
+        $guru = $_GET['guru'] ?? 'guru lain';
+        $jenis = $_GET['jenis'] ?? 'kegiatan lain';
+        $message = '<div class="alert alert-danger">
+            <strong>Konflik Waktu di Kelas!</strong><br>
+            Sudah ada kegiatan <strong>' . htmlspecialchars($jenis) . '</strong> oleh <strong>' . htmlspecialchars($guru) . '</strong> 
+            di ' . htmlspecialchars($kelas) . ' pada tanggal ' . htmlspecialchars($tanggal) . ' 
+            pada jam ' . htmlspecialchars($jam) . '.<br>
+            <small class="text-muted">Silakan pilih kelas lain, tanggal lain, atau waktu yang berbeda.</small>
+        </div>';
+    } elseif ($_GET['msg'] === 'error_teacher_conflict') {
+        $kelas = $_GET['kelas'] ?? 'Kelas tersebut';
+        $tanggal = $_GET['tanggal'] ?? 'tanggal tersebut';
+        $jam = $_GET['jam'] ?? 'waktu tersebut';
+        $guru = $_GET['guru'] ?? 'guru lain';
+        $jenis = $_GET['jenis'] ?? 'kegiatan lain';
+        $message = '<div class="alert alert-danger">
+            <strong>Konflik Waktu Guru!</strong><br>
+            Guru <strong>' . htmlspecialchars($guru) . '</strong> sudah mengajar <strong>' . htmlspecialchars($jenis) . '</strong> 
+            di ' . htmlspecialchars($kelas) . ' pada tanggal ' . htmlspecialchars($tanggal) . ' 
+            pada jam ' . htmlspecialchars($jam) . '.<br>
+            <small class="text-muted">Guru tidak dapat mengajar di lebih dari 1 kelas pada waktu yang bersamaan. Silakan pilih guru lain, tanggal lain, atau waktu yang berbeda.</small>
+        </div>';
     }
 }
 ?>
@@ -136,6 +162,7 @@ if (isset($_GET['msg'])) {
                                         min="<?php echo date('Y-m-d'); ?>"
                                         value="<?php echo isset($_POST['tanggal']) ? htmlspecialchars($_POST['tanggal']) : ''; ?>"
                                         required>
+                                    <small class="form-text text-muted">Pilih tanggal untuk kegiatan ini</small>
                                 </div>
 
                                 <div class="row">
@@ -170,6 +197,20 @@ if (isset($_GET['msg'])) {
 
                                 <button type="submit" class="btn btn-primary">Tambah Kegiatan</button>
                             </form>
+                            
+                            <!-- Information about time conflict validation -->
+                            <div class="mt-4 p-3 bg-light rounded">
+                                <h6 class="text-info">
+                                    <i class="fas fa-info-circle me-2"></i>Informasi Validasi
+                                </h6>
+                                <ul class="mb-0 text-sm">
+                                    <li>Sistem akan memeriksa konflik waktu secara otomatis</li>
+                                    <li><strong>Tidak dapat membuat kegiatan di kelas yang sama</strong> pada tanggal dan waktu yang sama</li>
+                                    <li><strong>Guru tidak dapat mengajar di lebih dari 1 kelas</strong> pada waktu yang bersamaan</li>
+                                    <li>Dapat membuat kegiatan di kelas berbeda atau tanggal berbeda</li>
+                                    <li>Peringatan akan muncul jika ada konflik waktu</li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -237,9 +278,54 @@ if (isset($_GET['msg'])) {
             }
         }
 
+        // Save form data to session storage
+        function saveFormData() {
+            const formData = {
+                id_guru: document.getElementById('id_guru').value,
+                id_jenis_kegiatan: document.getElementById('id_jenis_kegiatan').value,
+                tingkat: document.getElementById('tingkat').value,
+                jurusan: document.getElementById('jurusan').value,
+                tanggal: document.getElementById('tanggal').value,
+                jam_mulai: document.getElementById('jam_mulai').value,
+                jam_selesai: document.getElementById('jam_selesai').value,
+                laporan: document.getElementById('laporan').value
+            };
+            sessionStorage.setItem('tambahKegiatanForm', JSON.stringify(formData));
+        }
+
+        // Load form data from session storage
+        function loadFormData() {
+            const savedData = sessionStorage.getItem('tambahKegiatanForm');
+            if (savedData) {
+                const formData = JSON.parse(savedData);
+                
+                if (formData.id_guru) document.getElementById('id_guru').value = formData.id_guru;
+                if (formData.id_jenis_kegiatan) document.getElementById('id_jenis_kegiatan').value = formData.id_jenis_kegiatan;
+                if (formData.tingkat) {
+                    document.getElementById('tingkat').value = formData.tingkat;
+                    populateJurusanDropdown();
+                    if (formData.jurusan) {
+                        document.getElementById('jurusan').value = formData.jurusan;
+                        updateKelasId();
+                    }
+                }
+                if (formData.tanggal) document.getElementById('tanggal').value = formData.tanggal;
+                if (formData.jam_mulai) document.getElementById('jam_mulai').value = formData.jam_mulai;
+                if (formData.jam_selesai) document.getElementById('jam_selesai').value = formData.jam_selesai;
+                if (formData.laporan) document.getElementById('laporan').value = formData.laporan;
+            }
+        }
+
+        // Clear form data from session storage
+        function clearFormData() {
+            sessionStorage.removeItem('tambahKegiatanForm');
+        }
+
         function validateForm() {
             const jamMulai = document.getElementById('jam_mulai').value;
             const jamSelesai = document.getElementById('jam_selesai').value;
+            const tanggal = document.getElementById('tanggal').value;
+            const idKelas = document.getElementById('id_kelas').value;
             
             if (jamMulai && jamSelesai) {
                 const startTime = new Date('2000-01-01 ' + jamMulai);
@@ -251,16 +337,128 @@ if (isset($_GET['msg'])) {
                 }
             }
             
+            // Check if all required fields are filled
+            if (!tanggal || !idKelas) {
+                alert('Mohon pilih tanggal dan kelas terlebih dahulu!');
+                return false;
+            }
+            
+            // Save form data before submit
+            saveFormData();
+            
+            // Clear form data after successful validation (will be cleared after submit)
+            setTimeout(() => {
+                clearFormData();
+            }, 1000);
+            
             return true;
+        }
+
+        // Real-time validation for time conflicts
+        function checkTimeConflict() {
+            const tanggal = document.getElementById('tanggal').value;
+            const jamMulai = document.getElementById('jam_mulai').value;
+            const jamSelesai = document.getElementById('jam_selesai').value;
+            const idKelas = document.getElementById('id_kelas').value;
+            
+            if (tanggal && jamMulai && jamSelesai && idKelas) {
+                // Show loading indicator
+                const submitBtn = document.querySelector('button[type="submit"]');
+                const originalText = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memeriksa...';
+                submitBtn.disabled = true;
+                
+                // Check for conflicts via AJAX
+                const formData = new FormData();
+                formData.append('tanggal', tanggal);
+                formData.append('jam_mulai', jamMulai);
+                formData.append('jam_selesai', jamSelesai);
+                formData.append('id_kelas', idKelas);
+                formData.append('check_conflict', '1');
+                
+                fetch('../../app/controllers/proses_cek_waktu.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.has_conflict) {
+                        // Show conflict warning
+                        showConflictWarning(data.conflict_info);
+                    } else {
+                        // Hide any existing warnings
+                        hideConflictWarning();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking conflict:', error);
+                })
+                .finally(() => {
+                    // Reset button
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                });
+            }
+        }
+
+        function showConflictWarning(conflictInfo) {
+            // Remove existing warning
+            hideConflictWarning();
+            
+            const warningDiv = document.createElement('div');
+            warningDiv.id = 'conflict-warning';
+            warningDiv.className = 'alert alert-warning mt-3';
+            warningDiv.innerHTML = `
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <strong>Peringatan Konflik Waktu!</strong><br>
+                ${conflictInfo}<br>
+                <small class="text-muted">Silakan pilih waktu yang berbeda atau kelas/tanggal yang berbeda.</small>
+            `;
+            
+            // Insert after the time inputs
+            const timeRow = document.querySelector('.row:has(#jam_mulai)');
+            timeRow.parentNode.insertBefore(warningDiv, timeRow.nextSibling);
+        }
+
+        function hideConflictWarning() {
+            const existingWarning = document.getElementById('conflict-warning');
+            if (existingWarning) {
+                existingWarning.remove();
+            }
         }
 
         // Add event listeners
         tingkatSelect.addEventListener('change', populateJurusanDropdown);
         tingkatSelect.addEventListener('change', updateKelasId);
         jurusanSelect.addEventListener('change', updateKelasId);
+        
+        // Add time conflict checking
+        document.getElementById('tanggal').addEventListener('change', checkTimeConflict);
+        document.getElementById('jam_mulai').addEventListener('change', checkTimeConflict);
+        document.getElementById('jam_selesai').addEventListener('change', checkTimeConflict);
+        
+        // Check conflict when kelas changes
+        function checkConflictOnKelasChange() {
+            updateKelasId();
+            setTimeout(checkTimeConflict, 100); // Small delay to ensure kelas ID is updated
+        }
+        
+        tingkatSelect.addEventListener('change', checkConflictOnKelasChange);
+        jurusanSelect.addEventListener('change', checkConflictOnKelasChange);
+
+        // Auto-save form data on input changes
+        document.getElementById('id_guru').addEventListener('change', saveFormData);
+        document.getElementById('id_jenis_kegiatan').addEventListener('change', saveFormData);
+        document.getElementById('tanggal').addEventListener('change', saveFormData);
+        document.getElementById('jam_mulai').addEventListener('change', saveFormData);
+        document.getElementById('jam_selesai').addEventListener('change', saveFormData);
+        document.getElementById('laporan').addEventListener('input', saveFormData);
 
         // Initial population of the jurusan dropdown based on any pre-selected tingkat
         populateJurusanDropdown();
+        
+        // Load saved form data on page load
+        loadFormData();
     </script>
 
     <script src="../assets/js/core/popper.min.js"></script>

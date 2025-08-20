@@ -317,6 +317,9 @@ updateStatusBasedOnDate($conn);
                       $query_kegiatan = "
                       SELECT 
                         k.id_kegiatan,
+                        k.id_guru,
+                        k.id_jenis_kegiatan,
+                        k.id_kelas,
                         g.nama_guru,
                         jk.nama_kegiatan as jenis_kegiatan,
                         CONCAT(kl.tingkat, ' ', kl.jurusan) as kelas,
@@ -331,7 +334,7 @@ updateStatusBasedOnDate($conn);
                       LEFT JOIN jenis_kegiatan jk ON k.id_jenis_kegiatan = jk.id_jenis_kegiatan
                       LEFT JOIN kelas kl ON k.id_kelas = kl.id_kelas
                       LEFT JOIN status_kegiatan sk ON k.id_status = sk.id_status
-                      ORDER BY k.tanggal DESC
+                      ORDER BY k.tanggal ASC
                     ";
                       $result_kegiatan = pg_query($conn, $query_kegiatan);
 
@@ -433,7 +436,10 @@ updateStatusBasedOnDate($conn);
                                                               '<?php echo date('d/m/Y', strtotime($row['tanggal'])); ?>',
                                                               '<?php echo (!empty($row['jam_mulai']) && !empty($row['jam_selesai'])) ? date('H:i', strtotime($row['jam_mulai'])) . ' - ' . date('H:i', strtotime($row['jam_selesai'])) : 'N/A'; ?>',
                                                               '<?php echo $row['id_status']; ?>',
-                                                              '<?php echo addslashes($row['status_name'] ?? 'N/A'); ?>')">
+                                                              '<?php echo addslashes($row['status_name'] ?? 'N/A'); ?>',
+                                                              '<?php echo $row['id_guru']; ?>',
+                                                              '<?php echo $row['id_jenis_kegiatan']; ?>',
+                                                              '<?php echo $row['id_kelas']; ?>')">
                                 <i class="fas fa-eye me-1"></i>Detail
                               </span>
                             </td>
@@ -504,8 +510,19 @@ updateStatusBasedOnDate($conn);
                     <label class="form-label font-weight-bold text-dark text-sm">
                       <i class="fas fa-chalkboard-teacher me-1"></i>Nama Guru:
                     </label>
-                    <div class="bg-light p-2 rounded">
-                      <span id="modalGuru" class="text-sm"></span>
+                    <div class="d-flex gap-2">
+                      <select id="modalGuruSelect" class="form-select form-select-sm flex-grow-1">
+                        <?php
+                        $guru_modal_query = "SELECT id_guru, nama_guru FROM guru ORDER BY nama_guru";
+                        $guru_modal_result = pg_query($conn, $guru_modal_query);
+                        while ($guru_modal = pg_fetch_assoc($guru_modal_result)) {
+                          echo "<option value='{$guru_modal['id_guru']}'>{$guru_modal['nama_guru']}</option>";
+                        }
+                        ?>
+                      </select>
+                      <button class="btn btn-primary btn-sm px-3" type="button" id="updateGuruBtn">
+                        <i class="fas fa-save me-1"></i>Update
+                      </button>
                     </div>
                   </div>
                   
@@ -513,18 +530,49 @@ updateStatusBasedOnDate($conn);
                     <label class="form-label font-weight-bold text-dark text-sm">
                       <i class="fas fa-tasks me-1"></i>Jenis Kegiatan:
                     </label>
-                    <div class="bg-light p-2 rounded">
-                      <span id="modalJenis" class="text-sm"></span>
+                    <div class="d-flex gap-2">
+                      <select id="modalJenisSelect" class="form-select form-select-sm flex-grow-1">
+                        <?php
+                        $jenis_modal_query = "SELECT id_jenis_kegiatan, nama_kegiatan FROM jenis_kegiatan ORDER BY nama_kegiatan";
+                        $jenis_modal_result = pg_query($conn, $jenis_modal_query);
+                        while ($jenis_modal = pg_fetch_assoc($jenis_modal_result)) {
+                          echo "<option value='{$jenis_modal['id_jenis_kegiatan']}'>{$jenis_modal['nama_kegiatan']}</option>";
+                        }
+                        ?>
+                      </select>
+                      <button class="btn btn-primary btn-sm px-3" type="button" id="updateJenisBtn">
+                        <i class="fas fa-save me-1"></i>Update
+                      </button>
                     </div>
                   </div>
                   
-                  <div class="mb-0">
+                  <div class="mb-3">
                     <label class="form-label font-weight-bold text-dark text-sm">
                       <i class="fas fa-school me-1"></i>Kelas:
                     </label>
-                    <div class="bg-light p-2 rounded">
-                      <span id="modalKelas" class="text-sm"></span>
+                    <div class="row g-2 mb-2">
+                      <div class="col-6">
+                        <label class="form-label text-xs text-muted">Tingkat:</label>
+                        <select id="modalTingkatSelect" class="form-select form-select-sm">
+                          <?php
+                          $tingkat_modal_query = "SELECT DISTINCT tingkat FROM kelas ORDER BY tingkat";
+                          $tingkat_modal_result = pg_query($conn, $tingkat_modal_query);
+                          while ($tingkat_modal = pg_fetch_assoc($tingkat_modal_result)) {
+                            echo "<option value='{$tingkat_modal['tingkat']}'>{$tingkat_modal['tingkat']}</option>";
+                          }
+                          ?>
+                        </select>
+                      </div>
+                      <div class="col-6">
+                        <label class="form-label text-xs text-muted">Jurusan:</label>
+                        <select id="modalJurusanSelect" class="form-select form-select-sm">
+                          <option value="">Pilih Jurusan</option>
+                        </select>
+                      </div>
                     </div>
+                    <button class="btn btn-primary btn-sm px-3 w-100" type="button" id="updateKelasBtn">
+                      <i class="fas fa-save me-1"></i>Update Kelas
+                    </button>
                   </div>
                 </div>
               </div>
@@ -611,9 +659,13 @@ updateStatusBasedOnDate($conn);
                   </h6>
                 </div>
                 <div class="card-body p-3">
-                  <div class="bg-light p-3 rounded" style="max-height: 150px; overflow-y: auto;">
-                    <p id="modalLaporan" class="text-sm mb-0" style="white-space: pre-wrap; line-height: 1.5;"></p>
+                  <div class="mb-2">
+                    <textarea id="modalLaporanTextarea" class="form-control" rows="4" 
+                              placeholder="Masukkan laporan kegiatan..." style="resize: vertical;"></textarea>
                   </div>
+                  <button class="btn btn-primary btn-sm px-3 w-100" type="button" id="updateLaporanBtn">
+                    <i class="fas fa-save me-1"></i>Update Laporan
+                  </button>
                 </div>
               </div>
             </div>
@@ -621,7 +673,7 @@ updateStatusBasedOnDate($conn);
         </div>
         
         <div class="modal-footer bg-light py-2">
-          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">
+          <button type="button" class="btn btn-secondary btn-sm" id="closeModalBtn">
             <i class="fas fa-times me-1"></i>Tutup
           </button>
         </div>
@@ -638,14 +690,44 @@ updateStatusBasedOnDate($conn);
   <!-- Enhanced JavaScript with date and time editing functionality -->
   <script>
     let currentKegiatanId = null;
+    let currentIdGuru = null;
+    let currentIdJenis = null;
+    let currentIdKelas = null;
 
-    function showDetailModal(id, guru, jenis, kelas, laporan, tanggal, waktu, statusId, statusName) {
+    // Store all kelas data for modal
+    const kelasData = [
+      <?php
+      $kelas_modal_data_query = "SELECT id_kelas, tingkat, jurusan FROM kelas ORDER BY tingkat, jurusan";
+      $kelas_modal_data_result = pg_query($conn, $kelas_modal_data_query);
+      $kelas_modal_data_array = [];
+      while ($kelas_modal_data = pg_fetch_assoc($kelas_modal_data_result)) {
+        $kelas_modal_data_array[] = "{id: '" . $kelas_modal_data['id_kelas'] . "', tingkat: '" . $kelas_modal_data['tingkat'] . "', jurusan: '" . $kelas_modal_data['jurusan'] . "'}";
+      }
+      echo implode(',', $kelas_modal_data_array);
+      ?>
+    ];
+
+    function showDetailModal(id, guru, jenis, kelas, laporan, tanggal, waktu, statusId, statusName, idGuru, idJenis, idKelas) {
       currentKegiatanId = id;
+      currentIdGuru = idGuru;
+      currentIdJenis = idJenis;
+      currentIdKelas = idKelas;
 
-      document.getElementById('modalGuru').textContent = guru;
-      document.getElementById('modalJenis').textContent = jenis;
-      document.getElementById('modalKelas').textContent = kelas;
-      document.getElementById('modalLaporan').textContent = laporan;
+      // Set dropdown values
+      document.getElementById('modalGuruSelect').value = idGuru;
+      document.getElementById('modalJenisSelect').value = idJenis;
+      
+      // Extract tingkat and jurusan from kelas string (e.g., "XI BROADCAST")
+      const kelasParts = kelas.split(' ');
+      if (kelasParts.length >= 2) {
+        const tingkat = kelasParts[0];
+        const jurusan = kelasParts.slice(1).join(' ');
+        
+        document.getElementById('modalTingkatSelect').value = tingkat;
+        populateModalJurusan(tingkat, jurusan);
+      }
+      
+      document.getElementById('modalLaporanTextarea').value = laporan;
 
       const dateObj = new Date(tanggal.split('/').reverse().join('-'));
       const formattedDate = dateObj.toISOString().split('T')[0];
@@ -690,6 +772,50 @@ updateStatusBasedOnDate($conn);
       modal.show();
     }
 
+    // Function to populate jurusan dropdown in modal
+    function populateModalJurusan(tingkat, selectedJurusan = '') {
+      const modalJurusanSelect = document.getElementById('modalJurusanSelect');
+      
+      // Clear existing options
+      modalJurusanSelect.innerHTML = '<option value="">Pilih Jurusan</option>';
+      
+      if (tingkat) {
+        // Find unique jurusans for the selected tingkat
+        const availableJurusans = [...new Set(
+          kelasData
+          .filter(kelas => kelas.tingkat === tingkat)
+          .map(kelas => kelas.jurusan)
+        )];
+        
+        // Populate the jurusan dropdown
+        availableJurusans.forEach(jurusan => {
+          const option = document.createElement('option');
+          option.value = jurusan;
+          option.textContent = jurusan;
+          if (jurusan === selectedJurusan) {
+            option.selected = true;
+          }
+          modalJurusanSelect.appendChild(option);
+        });
+      }
+    }
+    
+    // Function to get kelas ID from tingkat and jurusan
+    function getModalKelasId() {
+      const tingkat = document.getElementById('modalTingkatSelect').value;
+      const jurusan = document.getElementById('modalJurusanSelect').value;
+      
+      if (tingkat && jurusan) {
+        const matchingKelas = kelasData
+          .filter(kelas => kelas.tingkat === tingkat && kelas.jurusan === jurusan);
+        
+        if (matchingKelas.length > 0) {
+          return matchingKelas[0].id;
+        }
+      }
+      return null;
+    }
+
     document.getElementById('updateDateBtn').addEventListener('click', function() {
       const newDate = document.getElementById('modalTanggalInput').value;
 
@@ -719,6 +845,51 @@ updateStatusBasedOnDate($conn);
     });
 
     // Status update functionality (enhanced)
+    // Event listeners for updating guru, jenis, and kelas
+    document.getElementById('updateGuruBtn').addEventListener('click', function() {
+      const newGuruId = document.getElementById('modalGuruSelect').value;
+
+      if (!currentKegiatanId || !newGuruId) {
+        alert('Error: Missing data');
+        return;
+      }
+
+      updateField('guru', newGuruId, this, 'Guru');
+    });
+
+    document.getElementById('updateJenisBtn').addEventListener('click', function() {
+      const newJenisId = document.getElementById('modalJenisSelect').value;
+
+      if (!currentKegiatanId || !newJenisId) {
+        alert('Error: Missing data');
+        return;
+      }
+
+      updateField('jenis', newJenisId, this, 'Jenis Kegiatan');
+    });
+
+    document.getElementById('updateKelasBtn').addEventListener('click', function() {
+      const newKelasId = getModalKelasId();
+
+      if (!currentKegiatanId || !newKelasId) {
+        alert('Error: Mohon pilih tingkat dan jurusan terlebih dahulu!');
+        return;
+      }
+
+      updateField('kelas', newKelasId, this, 'Kelas');
+    });
+
+    document.getElementById('updateLaporanBtn').addEventListener('click', function() {
+      const newLaporan = document.getElementById('modalLaporanTextarea').value;
+
+      if (!currentKegiatanId || !newLaporan.trim()) {
+        alert('Error: Mohon isi laporan terlebih dahulu!');
+        return;
+      }
+
+      updateField('laporan', newLaporan, this, 'Laporan');
+    });
+
     document.getElementById('updateStatusBtn').addEventListener('click', function() {
       const newStatusId = document.getElementById('statusSelect').value;
 
@@ -728,6 +899,31 @@ updateStatusBasedOnDate($conn);
       }
 
       updateField('status', newStatusId, this, 'Status');
+    });
+
+    // Add event listener for tingkat change in modal
+    document.getElementById('modalTingkatSelect').addEventListener('change', function() {
+      const selectedTingkat = this.value;
+      populateModalJurusan(selectedTingkat);
+    });
+
+    // Add event listener for close modal button
+    document.getElementById('closeModalBtn').addEventListener('click', function() {
+      // Close modal
+      const modal = bootstrap.Modal.getInstance(document.getElementById('detailModal'));
+      if (modal) {
+        modal.hide();
+      }
+      // Reload page after modal is hidden
+      setTimeout(() => {
+        location.reload();
+      }, 300);
+    });
+
+    // Add event listener for modal hidden event (when clicking outside or pressing ESC)
+    document.getElementById('detailModal').addEventListener('hidden.bs.modal', function() {
+      // Reload page when modal is hidden
+      location.reload();
     });
 
     function updateField(fieldType, value, buttonElement, fieldName) {

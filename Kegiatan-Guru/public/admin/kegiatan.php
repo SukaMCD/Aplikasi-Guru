@@ -478,78 +478,152 @@ updateStatusBasedOnDate($conn);
       </div>
   </main>
 
-  <!-- Modified Detail Modal with Status Editing -->
-  <div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="detailModalLabel">Detail Kegiatan</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+  <!-- Enhanced Detail Modal with Fixed Layout and Consistent Buttons -->
+  <div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true" style="z-index: 1060;">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content shadow-lg">
+        <div class="modal-header bg-gradient-primary">
+          <h5 class="modal-title text-white" id="detailModalLabel">
+            <i class="fas fa-info-circle me-2"></i>Detail Kegiatan
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <div class="modal-body">
-          <div class="row">
+        <div class="modal-body p-4">
+          <!-- Improved layout with consistent spacing and button alignment -->
+          <div class="row g-3">
+            <!-- Left Column - Basic Info -->
             <div class="col-md-6">
-              <div class="mb-3">
-                <label class="form-label font-weight-bold">Nama Guru:</label>
-                <p id="modalGuru" class="text-sm mb-0"></p>
+              <div class="card h-100 border-0 shadow-sm">
+                <div class="card-header bg-light py-2">
+                  <h6 class="mb-0 text-dark">
+                    <i class="fas fa-user me-2"></i>Informasi Guru & Kegiatan
+                  </h6>
+                </div>
+                <div class="card-body p-3">
+                  <div class="mb-3">
+                    <label class="form-label font-weight-bold text-dark text-sm">
+                      <i class="fas fa-chalkboard-teacher me-1"></i>Nama Guru:
+                    </label>
+                    <div class="bg-light p-2 rounded">
+                      <span id="modalGuru" class="text-sm"></span>
+                    </div>
+                  </div>
+                  
+                  <div class="mb-3">
+                    <label class="form-label font-weight-bold text-dark text-sm">
+                      <i class="fas fa-tasks me-1"></i>Jenis Kegiatan:
+                    </label>
+                    <div class="bg-light p-2 rounded">
+                      <span id="modalJenis" class="text-sm"></span>
+                    </div>
+                  </div>
+                  
+                  <div class="mb-0">
+                    <label class="form-label font-weight-bold text-dark text-sm">
+                      <i class="fas fa-school me-1"></i>Kelas:
+                    </label>
+                    <div class="bg-light p-2 rounded">
+                      <span id="modalKelas" class="text-sm"></span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
+
+            <!-- Right Column - Editable Fields -->
             <div class="col-md-6">
-              <div class="mb-3">
-                <label class="form-label font-weight-bold">Tanggal:</label>
-                <p id="modalTanggal" class="text-sm mb-0"></p>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label class="form-label font-weight-bold">Waktu:</label>
-                <p id="modalWaktu" class="text-sm mb-0"></p>
+              <div class="card h-100 border-0 shadow-sm">
+                <div class="card-header bg-light py-2">
+                  <h6 class="mb-0 text-dark">
+                    <i class="fas fa-calendar-alt me-2"></i>Waktu & Status
+                  </h6>
+                </div>
+                <div class="card-body p-3">
+                  <!-- Consistent date field with uniform button -->
+                  <div class="mb-3">
+                    <label class="form-label font-weight-bold text-dark text-sm">
+                      <i class="fas fa-calendar me-1"></i>Tanggal:
+                    </label>
+                    <div class="d-flex gap-2">
+                      <input type="date" id="modalTanggalInput" class="form-control form-control-sm flex-grow-1">
+                      <button class="btn btn-primary btn-sm px-3" type="button" id="updateDateBtn">
+                        <i class="fas fa-save me-1"></i>Update
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <!-- Improved time fields with consistent button styling -->
+                  <div class="mb-3">
+                    <label class="form-label font-weight-bold text-dark text-sm">
+                      <i class="fas fa-clock me-1"></i>Waktu:
+                    </label>
+                    <div class="row g-2 mb-2">
+                      <div class="col-6">
+                        <label class="form-label text-xs text-muted">Mulai:</label>
+                        <input type="time" id="modalWaktuMulai" class="form-control form-control-sm">
+                      </div>
+                      <div class="col-6">
+                        <label class="form-label text-xs text-muted">Selesai:</label>
+                        <input type="time" id="modalWaktuSelesai" class="form-control form-control-sm">
+                      </div>
+                    </div>
+                    <button class="btn btn-primary btn-sm px-3 w-100" type="button" id="updateTimeBtn">
+                      <i class="fas fa-save me-1"></i>Update Waktu
+                    </button>
+                  </div>
+                  
+                  <!-- Enhanced Status Section with consistent button -->
+                  <div class="mb-0">
+                    <label class="form-label font-weight-bold text-dark text-sm">
+                      <i class="fas fa-flag me-1"></i>Status:
+                    </label>
+                    <div class="mb-2">
+                      <span id="currentStatus" class="badge fs-6"></span>
+                    </div>
+                    <div class="d-flex gap-2">
+                      <select id="statusSelect" class="form-select form-select-sm flex-grow-1">
+                        <?php
+                        // Get all status options
+                        $status_query = "SELECT id_status, status FROM status_kegiatan ORDER BY id_status";
+                        $status_result = pg_query($conn, $status_query);
+                        while ($status_row = pg_fetch_assoc($status_result)) {
+                          echo "<option value='{$status_row['id_status']}'>{$status_row['status']}</option>";
+                        }
+                        ?>
+                      </select>
+                      <button id="updateStatusBtn" class="btn btn-primary btn-sm px-3">
+                        <i class="fas fa-sync-alt me-1"></i>Update
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-          <div class="row">
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label class="form-label font-weight-bold">Jenis Kegiatan:</label>
-                <p id="modalJenis" class="text-sm mb-0"></p>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label class="form-label font-weight-bold">Kelas:</label>
-                <p id="modalKelas" class="text-sm mb-0"></p>
-              </div>
-            </div>
-          </div>
-          <!-- Status editing section -->
-          <div class="mb-3">
-            <label class="form-label font-weight-bold">Status:</label>
-            <div class="d-flex align-items-center">
-              <span id="currentStatus" class="badge me-3"></span>
-              <select id="statusSelect" class="form-select form-select-sm" style="width: auto;">
-                <?php
-                // Get all status options
-                $status_query = "SELECT id_status, status FROM status_kegiatan ORDER BY id_status";
-                $status_result = pg_query($conn, $status_query);
-                while ($status_row = pg_fetch_assoc($status_result)) {
-                  echo "<option value='{$status_row['id_status']}'>{$status_row['status']}</option>";
-                }
-                ?>
-              </select>
-              <button id="updateStatusBtn" class="btn btn-sm btn-primary ms-2">Update</button>
-            </div>
-          </div>
-          <div class="mb-3">
-            <label class="form-label font-weight-bold">Laporan Lengkap:</label>
-            <div class="card">
-              <div class="card-body">
-                <p id="modalLaporan" class="text-sm mb-0" style="white-space: pre-wrap;"></p>
+
+          <!-- Full Width Report Section with better spacing -->
+          <div class="row mt-3">
+            <div class="col-12">
+              <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light py-2">
+                  <h6 class="mb-0 text-dark">
+                    <i class="fas fa-file-alt me-2"></i>Laporan Lengkap
+                  </h6>
+                </div>
+                <div class="card-body p-3">
+                  <div class="bg-light p-3 rounded" style="max-height: 150px; overflow-y: auto;">
+                    <p id="modalLaporan" class="text-sm mb-0" style="white-space: pre-wrap; line-height: 1.5;"></p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+        
+        <div class="modal-footer bg-light py-2">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">
+            <i class="fas fa-times me-1"></i>Tutup
+          </button>
         </div>
       </div>
     </div>
@@ -561,7 +635,7 @@ updateStatusBasedOnDate($conn);
   <script src="../assets/js/plugins/perfect-scrollbar.min.js"></script>
   <script src="../assets/js/plugins/smooth-scrollbar.min.js"></script>
 
-  <!-- Modified JavaScript with status editing functionality -->
+  <!-- Enhanced JavaScript with date and time editing functionality -->
   <script>
     let currentKegiatanId = null;
 
@@ -572,15 +646,28 @@ updateStatusBasedOnDate($conn);
       document.getElementById('modalJenis').textContent = jenis;
       document.getElementById('modalKelas').textContent = kelas;
       document.getElementById('modalLaporan').textContent = laporan;
-      document.getElementById('modalTanggal').textContent = tanggal;
-      document.getElementById('modalWaktu').textContent = waktu;
+
+      const dateObj = new Date(tanggal.split('/').reverse().join('-'));
+      const formattedDate = dateObj.toISOString().split('T')[0];
+      document.getElementById('modalTanggalInput').value = formattedDate;
+
+      if (waktu && waktu !== 'N/A') {
+        const timeRange = waktu.split(' - ');
+        if (timeRange.length === 2) {
+          document.getElementById('modalWaktuMulai').value = timeRange[0];
+          document.getElementById('modalWaktuSelesai').value = timeRange[1];
+        }
+      } else {
+        document.getElementById('modalWaktuMulai').value = '';
+        document.getElementById('modalWaktuSelesai').value = '';
+      }
 
       // Set current status
       const currentStatusElement = document.getElementById('currentStatus');
       currentStatusElement.textContent = statusName;
 
       // Set status badge color
-      currentStatusElement.className = 'badge me-3 ';
+      currentStatusElement.className = 'badge fs-6 ';
       switch (statusId) {
         case '1': // Direncanakan
           currentStatusElement.className += 'bg-gradient-secondary';
@@ -603,7 +690,35 @@ updateStatusBasedOnDate($conn);
       modal.show();
     }
 
-    // Status update functionality
+    document.getElementById('updateDateBtn').addEventListener('click', function() {
+      const newDate = document.getElementById('modalTanggalInput').value;
+
+      if (!currentKegiatanId || !newDate) {
+        alert('Error: Missing data');
+        return;
+      }
+
+      updateField('tanggal', newDate, this, 'Tanggal');
+    });
+
+    document.getElementById('updateTimeBtn').addEventListener('click', function() {
+      const waktuMulai = document.getElementById('modalWaktuMulai').value;
+      const waktuSelesai = document.getElementById('modalWaktuSelesai').value;
+
+      if (!currentKegiatanId || !waktuMulai || !waktuSelesai) {
+        alert('Error: Mohon isi waktu mulai dan selesai');
+        return;
+      }
+
+      const timeData = {
+        jam_mulai: waktuMulai,
+        jam_selesai: waktuSelesai
+      };
+
+      updateField('waktu', JSON.stringify(timeData), this, 'Waktu');
+    });
+
+    // Status update functionality (enhanced)
     document.getElementById('updateStatusBtn').addEventListener('click', function() {
       const newStatusId = document.getElementById('statusSelect').value;
 
@@ -612,70 +727,159 @@ updateStatusBasedOnDate($conn);
         return;
       }
 
+      updateField('status', newStatusId, this, 'Status');
+    });
+
+    function updateField(fieldType, value, buttonElement, fieldName) {
       // Show loading state
-      this.disabled = true;
-      this.textContent = 'Updating...';
+      const originalText = buttonElement.innerHTML;
+      buttonElement.disabled = true;
+      buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Updating...';
 
       // Send AJAX request
       const formData = new FormData();
       formData.append('id_kegiatan', currentKegiatanId);
-      formData.append('id_status', newStatusId);
+      formData.append('field_type', fieldType);
+      formData.append('value', value);
 
-      fetch('../../app/controllers/proses_update_status.php', {
+      fetch('../../app/controllers/proses_update_kegiatan.php', {
           method: 'POST',
           body: formData
         })
         .then(response => response.json())
         .then(data => {
           if (data.success) {
-            // Update current status display
-            const currentStatusElement = document.getElementById('currentStatus');
-            currentStatusElement.textContent = data.status_name;
+            if (fieldType === 'status') {
+              const currentStatusElement = document.getElementById('currentStatus');
+              currentStatusElement.textContent = data.status_name;
 
-            // Update badge color
-            currentStatusElement.className = 'badge me-3 ';
-            switch (newStatusId) {
-              case '1':
-                currentStatusElement.className += 'bg-gradient-secondary';
-                break;
-              case '2':
-                currentStatusElement.className += 'bg-gradient-warning';
-                break;
-              case '3':
-                currentStatusElement.className += 'bg-gradient-success';
-                break;
-              case '4':
-                currentStatusElement.className += 'bg-gradient-danger';
-                break;
+              // Update badge color
+              currentStatusElement.className = 'badge fs-6 ';
+              switch (value) {
+                case '1':
+                  currentStatusElement.className += 'bg-gradient-secondary';
+                  break;
+                case '2':
+                  currentStatusElement.className += 'bg-gradient-warning';
+                  break;
+                case '3':
+                  currentStatusElement.className += 'bg-gradient-success';
+                  break;
+                case '4':
+                  currentStatusElement.className += 'bg-gradient-danger';
+                  break;
+              }
             }
 
-            alert('Status berhasil diupdate!');
+            updateTableRow(currentKegiatanId, fieldType, value, data);
 
-            // Refresh page to update table
-            setTimeout(() => {
-              location.reload();
-            }, 1000);
+            // Show success message
+            showNotification(`${fieldName} berhasil diupdate!`, 'success');
+
           } else {
-            alert('Error: ' + data.message);
+            showNotification('Error: ' + data.message, 'error');
           }
         })
         .catch(error => {
           console.error('Error:', error);
-          alert('Terjadi kesalahan saat mengupdate status');
+          showNotification(`Terjadi kesalahan saat mengupdate ${fieldName.toLowerCase()}`, 'error');
         })
         .finally(() => {
           // Reset button state
-          this.disabled = false;
-          this.textContent = 'Update';
+          buttonElement.disabled = false;
+          buttonElement.innerHTML = originalText;
         });
-    });
+    }
 
-    var win = navigator.platform.indexOf('Win') > -1;
-    if (win && document.querySelector('#sidenav-scrollbar')) {
-      var options = {
-        damping: '0.5'
+    function updateTableRow(kegiatanId, fieldType, value, responseData) {
+      // Find the table row for this kegiatan
+      const tableRows = document.querySelectorAll('tbody tr');
+      
+      tableRows.forEach(row => {
+        const detailButton = row.querySelector('[onclick*="' + kegiatanId + '"]');
+        if (detailButton) {
+          if (fieldType === 'tanggal') {
+            // Update date column (index 6)
+            const dateCell = row.children[6];
+            if (dateCell) {
+              const dateObj = new Date(value);
+              const formattedDate = dateObj.toLocaleDateString('id-ID');
+              dateCell.querySelector('h6').textContent = formattedDate;
+            }
+          } else if (fieldType === 'waktu') {
+            // Update time column (index 5)
+            const timeCell = row.children[5];
+            if (timeCell && responseData.formatted_time) {
+              timeCell.querySelector('h6').textContent = responseData.formatted_time;
+            }
+          } else if (fieldType === 'status') {
+            // Update status column (index 7)
+            const statusCell = row.children[7];
+            if (statusCell) {
+              const statusBadge = statusCell.querySelector('.badge');
+              statusBadge.textContent = responseData.status_name;
+              
+              // Update badge color
+              statusBadge.className = 'badge badge-sm ';
+              switch (value) {
+                case '1':
+                  statusBadge.className += 'bg-gradient-secondary';
+                  break;
+                case '2':
+                  statusBadge.className += 'bg-gradient-warning';
+                  break;
+                case '3':
+                  statusBadge.className += 'bg-gradient-success';
+                  break;
+                case '4':
+                  statusBadge.className += 'bg-gradient-danger';
+                  break;
+              }
+            }
+          }
+          
+          updateDetailButtonOnClick(detailButton, fieldType, value, responseData);
+        }
+      });
+    }
+
+    function updateDetailButtonOnClick(button, fieldType, value, responseData) {
+      const currentOnClick = button.getAttribute('onclick');
+      
+      if (fieldType === 'tanggal') {
+        const dateObj = new Date(value);
+        const formattedDate = dateObj.toLocaleDateString('id-ID');
+        const newOnClick = currentOnClick.replace(/'\d{2}\/\d{2}\/\d{4}'/, "'" + formattedDate + "'");
+        button.setAttribute('onclick', newOnClick);
+      } else if (fieldType === 'waktu' && responseData.formatted_time) {
+        const newOnClick = currentOnClick.replace(/'[^']*\s-\s[^']*'/, "'" + responseData.formatted_time + "'");
+        button.setAttribute('onclick', newOnClick);
+      } else if (fieldType === 'status') {
+        // Update status ID and name in onclick
+        const newOnClick = currentOnClick.replace(/'(\d+)',\s*'([^']*)'(?=\))/g, "'" + value + "', '" + responseData.status_name + "'");
+        button.setAttribute('onclick', newOnClick);
       }
-      Scrollbar.init(document.querySelector('#sidenav-scrollbar'), options);
+    }
+
+    function showNotification(message, type) {
+      // Create notification element
+      const notification = document.createElement('div');
+      notification.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
+      notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+      notification.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i>
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      `;
+
+      document.body.appendChild(notification);
+
+      // Auto remove after 3 seconds
+      setTimeout(() => {
+        if (notification.parentNode) {
+          notification.remove();
+        }
+      }, 3000);
     }
   </script>
   <!-- Control Center for Soft Dashboard: parallax effects, scripts for the example pages etc -->

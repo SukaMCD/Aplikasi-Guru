@@ -39,6 +39,8 @@ include '../../config/koneksi.php'; // Pastikan koneksi database sudah benar
   <link href="https://demos.creative-tim.com/argon-dashboard-pro/assets/css/nucleo-svg.css" rel="stylesheet" />
   <!-- Font Awesome Icons -->
   <script src="https://kit.fontawesome.com/42d5adcbca.js" crossorigin="anonymous"></script>
+  <!-- Bootstrap Icons -->
+  <link href="https://demos.creative-tim.com/argon-dashboard-pro/assets/css/bootstrap-icons.css" rel="stylesheet" />
   <!-- CSS Files -->
   <link id="pagestyle" href="../assets/css/argon-dashboard.css?v=2.1.0" rel="stylesheet" />
 </head>
@@ -89,11 +91,11 @@ include '../../config/koneksi.php'; // Pastikan koneksi database sudah benar
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link " href="rtl.php">
+          <a class="nav-link " href="logs.php">
             <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-              <i class="ni ni-world-2 text-dark text-sm opacity-10"></i>
+              <i class="bi bi-code-slash text-dark text-sm opacity-10"></i>
             </div>
-            <span class="nav-link-text ms-1">RTL</span>
+            <span class="nav-link-text ms-1">Logs</span>
           </a>
         </li>
         <li class="nav-item mt-3">

@@ -43,6 +43,8 @@ updateStatusBasedOnDate($conn);
   <link href="https://demos.creative-tim.com/argon-dashboard-pro/assets/css/nucleo-svg.css" rel="stylesheet" />
   <!-- Font Awesome Icons -->
   <script src="https://kit.fontawesome.com/42d5adcbca.js" crossorigin="anonymous"></script>
+  <!-- Bootstrap Icons -->
+  <link href="https://demos.creative-tim.com/argon-dashboard-pro/assets/css/bootstrap-icons.css" rel="stylesheet" />
   <!-- SweetAlert2 -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <!-- CSS Files -->
@@ -95,11 +97,11 @@ updateStatusBasedOnDate($conn);
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link " href="rtl.php">
+          <a class="nav-link " href="logs.php">
             <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-              <i class="ni ni-world-2 text-dark text-sm opacity-10"></i>
+              <i class="bi bi-code-slash text-dark text-sm opacity-10"></i>
             </div>
-            <span class="nav-link-text ms-1">RTL</span>
+            <span class="nav-link-text ms-1">Logs</span>
           </a>
         </li>
         <li class="nav-item mt-3">
@@ -365,7 +367,7 @@ updateStatusBasedOnDate($conn);
                           $detail_class = 'bg-gradient-info';
 
                           $laporan_short = !empty($row['laporan']) ?
-                            (strlen($row['laporan']) > 25 ? substr($row['laporan'], 0, 25) . '...' : $row['laporan']) :
+                            (strlen($row['laporan']) > 10 ? substr($row['laporan'], 0, 10) . '...' : $row['laporan']) :
                             'N/A';
                       ?>
                           <tr class="border-bottom">
@@ -1202,6 +1204,8 @@ updateStatusBasedOnDate($conn);
   </script>
   <!-- Control Center for Soft Dashboard: parallax effects, scripts for the example pages etc -->
   <script src="../assets/js/argon-dashboard.min.js?v=2.1.0"></script>
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 </body>
 
 </html>

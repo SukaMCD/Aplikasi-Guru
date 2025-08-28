@@ -73,7 +73,7 @@ include '../../config/koneksi.php';
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="../app/controllers/proses_logout.php">
+                    <a class="nav-link" href="../../app/controllers/proses_logout.php">
                         <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
                             <i class="ni ni-single-copy-04 text-dark text-sm opacity-10"></i>
                         </div>
@@ -105,7 +105,7 @@ include '../../config/koneksi.php';
                     </div>
                     <ul class="navbar-nav justify-content-end">
                         <li class="nav-item d-flex align-items-center">
-                            <a href="../app/controllers/proses_logout.php" class="nav-link text-white font-weight-bold px-0">
+                            <a href="../../app/controllers/proses_logout.php" class="nav-link text-white font-weight-bold px-0">
                                 <i class="fa fa-sign-out me-sm-1"></i>
                                 <span class="d-sm-inline d-none">Logout</span>
                             </a>

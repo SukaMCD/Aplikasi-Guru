@@ -27,9 +27,11 @@ $jenis_kegiatan_query = "SELECT id_jenis_kegiatan, nama_kegiatan FROM jenis_kegi
 $jenis_kegiatan_result = pg_query($conn, $jenis_kegiatan_query);
 
 $message = '';
+$is_success = false; // Add flag to track successful submission
 if (isset($_GET['msg'])) {
     if ($_GET['msg'] === 'success') {
         $message = '<div class="alert alert-success">Kegiatan berhasil ditambahkan!</div>';
+        $is_success = true; // Set success flag
     } elseif ($_GET['msg'] === 'error_insert') {
         $message = '<div class="alert alert-danger">Gagal menambahkan kegiatan karena masalah database!</div>';
     } elseif ($_GET['msg'] === 'error_empty') {
@@ -107,7 +109,7 @@ if (isset($_GET['msg'])) {
                                         <option value="">Pilih Guru</option>
                                         <?php while ($guru = pg_fetch_assoc($guru_result)): ?>
                                             <option value="<?php echo $guru['id_guru']; ?>"
-                                                <?php echo (isset($_POST['id_guru']) && $_POST['id_guru'] == $guru['id_guru']) ? 'selected' : ''; ?>>
+                                                <?php echo (!$is_success && isset($_POST['id_guru']) && $_POST['id_guru'] == $guru['id_guru']) ? 'selected' : ''; ?>>
                                                 <?php echo htmlspecialchars($guru['nama_guru']); ?>
                                             </option>
                                         <?php endwhile; ?>
@@ -120,7 +122,7 @@ if (isset($_GET['msg'])) {
                                         <option value="">Pilih Jenis Kegiatan</option>
                                         <?php while ($jenis = pg_fetch_assoc($jenis_kegiatan_result)): ?>
                                             <option value="<?php echo $jenis['id_jenis_kegiatan']; ?>"
-                                                <?php echo (isset($_POST['id_jenis_kegiatan']) && $_POST['id_jenis_kegiatan'] == $jenis['id_jenis_kegiatan']) ? 'selected' : ''; ?>>
+                                                <?php echo (!$is_success && isset($_POST['id_jenis_kegiatan']) && $_POST['id_jenis_kegiatan'] == $jenis['id_jenis_kegiatan']) ? 'selected' : ''; ?>>
                                                 <?php echo htmlspecialchars($jenis['nama_kegiatan']); ?>
                                             </option>
                                         <?php endwhile; ?>
@@ -135,7 +137,7 @@ if (isset($_GET['msg'])) {
                                                 <option value="">Pilih Tingkat</option>
                                                 <?php while ($tingkat = pg_fetch_assoc($tingkat_result)): ?>
                                                     <option value="<?php echo $tingkat['tingkat']; ?>"
-                                                        <?php echo (isset($_POST['tingkat']) && $_POST['tingkat'] == $tingkat['tingkat']) ? 'selected' : ''; ?>>
+                                                        <?php echo (!$is_success && isset($_POST['tingkat']) && $_POST['tingkat'] == $tingkat['tingkat']) ? 'selected' : ''; ?>>
                                                         <?php echo htmlspecialchars($tingkat['tingkat']); ?>
                                                     </option>
                                                 <?php endwhile; ?>
@@ -149,7 +151,7 @@ if (isset($_GET['msg'])) {
                                                 <option value="">Pilih Jurusan</option>
                                                 <?php while ($jurusan = pg_fetch_assoc($jurusan_result)): ?>
                                                     <option value="<?php echo $jurusan['jurusan']; ?>"
-                                                        <?php echo (isset($_POST['jurusan']) && $_POST['jurusan'] == $jurusan['jurusan']) ? 'selected' : ''; ?>>
+                                                        <?php echo (!$is_success && isset($_POST['jurusan']) && $_POST['jurusan'] == $jurusan['jurusan']) ? 'selected' : ''; ?>>
                                                         <?php echo htmlspecialchars($jurusan['jurusan']); ?>
                                                     </option>
                                                 <?php endwhile; ?>
@@ -164,7 +166,7 @@ if (isset($_GET['msg'])) {
                                     <label for="tanggal">Tanggal Kegiatan</label>
                                     <input type="date" name="tanggal" class="form-control" id="tanggal"
                                         min="<?php echo date('Y-m-d'); ?>"
-                                        value="<?php echo isset($_POST['tanggal']) ? htmlspecialchars($_POST['tanggal']) : ''; ?>"
+                                        value="<?php echo (!$is_success && isset($_POST['tanggal'])) ? htmlspecialchars($_POST['tanggal']) : ''; ?>"
                                         required>
                                     <small class="form-text text-muted">Pilih tanggal untuk kegiatan ini</small>
                                 </div>
@@ -174,7 +176,7 @@ if (isset($_GET['msg'])) {
                                         <div class="form-group">
                                             <label for="jam_mulai">Jam Mulai</label>
                                             <input type="time" name="jam_mulai" class="form-control" id="jam_mulai"
-                                                value="<?php echo isset($_POST['jam_mulai']) ? htmlspecialchars($_POST['jam_mulai']) : ''; ?>"
+                                                value="<?php echo (!$is_success && isset($_POST['jam_mulai'])) ? htmlspecialchars($_POST['jam_mulai']) : ''; ?>"
                                                 required>
                                             <!-- Added time format hint -->
                                             <small class="form-text text-muted">Format: HH:MM (24 jam)</small>
@@ -185,7 +187,7 @@ if (isset($_GET['msg'])) {
                                         <div class="form-group">
                                             <label for="jam_selesai">Jam Selesai</label>
                                             <input type="time" name="jam_selesai" class="form-control" id="jam_selesai"
-                                                value="<?php echo isset($_POST['jam_selesai']) ? htmlspecialchars($_POST['jam_selesai']) : ''; ?>"
+                                                value="<?php echo (!$is_success && isset($_POST['jam_selesai'])) ? htmlspecialchars($_POST['jam_selesai']) : ''; ?>"
                                                 required>
                                             <!-- Added time format hint -->
                                             <small class="form-text text-muted">Format: HH:MM (24 jam)</small>
@@ -196,7 +198,7 @@ if (isset($_GET['msg'])) {
                                 <div class="form-group">
                                     <label for="laporan">Laporan Kegiatan</label>
                                     <textarea class="form-control" id="laporan" name="laporan" rows="4"
-                                        placeholder="Masukkan laporan kegiatan..." required><?php echo isset($_POST['laporan']) ? htmlspecialchars($_POST['laporan']) : ''; ?></textarea>
+                                        placeholder="Masukkan laporan kegiatan..." required><?php echo (!$is_success && isset($_POST['laporan'])) ? htmlspecialchars($_POST['laporan']) : ''; ?></textarea>
                                 </div>
 
                                 <button type="submit" class="btn btn-primary">Tambah Kegiatan</button>
@@ -282,49 +284,6 @@ if (isset($_GET['msg'])) {
             }
         }
 
-        // Save form data to session storage
-        function saveFormData() {
-            const formData = {
-                id_guru: document.getElementById('id_guru').value,
-                id_jenis_kegiatan: document.getElementById('id_jenis_kegiatan').value,
-                tingkat: document.getElementById('tingkat').value,
-                jurusan: document.getElementById('jurusan').value,
-                tanggal: document.getElementById('tanggal').value,
-                jam_mulai: document.getElementById('jam_mulai').value,
-                jam_selesai: document.getElementById('jam_selesai').value,
-                laporan: document.getElementById('laporan').value
-            };
-            sessionStorage.setItem('tambahKegiatanForm', JSON.stringify(formData));
-        }
-
-        // Load form data from session storage
-        function loadFormData() {
-            const savedData = sessionStorage.getItem('tambahKegiatanForm');
-            if (savedData) {
-                const formData = JSON.parse(savedData);
-                
-                if (formData.id_guru) document.getElementById('id_guru').value = formData.id_guru;
-                if (formData.id_jenis_kegiatan) document.getElementById('id_jenis_kegiatan').value = formData.id_jenis_kegiatan;
-                if (formData.tingkat) {
-                    document.getElementById('tingkat').value = formData.tingkat;
-                    populateJurusanDropdown();
-                    if (formData.jurusan) {
-                        document.getElementById('jurusan').value = formData.jurusan;
-                        updateKelasId();
-                    }
-                }
-                if (formData.tanggal) document.getElementById('tanggal').value = formData.tanggal;
-                if (formData.jam_mulai) document.getElementById('jam_mulai').value = formData.jam_mulai;
-                if (formData.jam_selesai) document.getElementById('jam_selesai').value = formData.jam_selesai;
-                if (formData.laporan) document.getElementById('laporan').value = formData.laporan;
-            }
-        }
-
-        // Clear form data from session storage
-        function clearFormData() {
-            sessionStorage.removeItem('tambahKegiatanForm');
-        }
-
         function validateForm() {
             const jamMulai = document.getElementById('jam_mulai').value;
             const jamSelesai = document.getElementById('jam_selesai').value;
@@ -346,14 +305,6 @@ if (isset($_GET['msg'])) {
                 alert('Mohon pilih tanggal dan kelas terlebih dahulu!');
                 return false;
             }
-            
-            // Save form data before submit
-            saveFormData();
-            
-            // Clear form data after successful validation (will be cleared after submit)
-            setTimeout(() => {
-                clearFormData();
-            }, 1000);
             
             return true;
         }
@@ -450,19 +401,20 @@ if (isset($_GET['msg'])) {
         tingkatSelect.addEventListener('change', checkConflictOnKelasChange);
         jurusanSelect.addEventListener('change', checkConflictOnKelasChange);
 
-        // Auto-save form data on input changes
-        document.getElementById('id_guru').addEventListener('change', saveFormData);
-        document.getElementById('id_jenis_kegiatan').addEventListener('change', saveFormData);
-        document.getElementById('tanggal').addEventListener('change', saveFormData);
-        document.getElementById('jam_mulai').addEventListener('change', saveFormData);
-        document.getElementById('jam_selesai').addEventListener('change', saveFormData);
-        document.getElementById('laporan').addEventListener('input', saveFormData);
-
         // Initial population of the jurusan dropdown based on any pre-selected tingkat
         populateJurusanDropdown();
         
-        // Load saved form data on page load
-        loadFormData();
+        <?php if ($is_success): ?>
+        document.getElementById('id_guru').value = '';
+        document.getElementById('id_jenis_kegiatan').value = '';
+        document.getElementById('tingkat').value = '';
+        document.getElementById('jurusan').innerHTML = '<option value="">Pilih Jurusan</option>';
+        document.getElementById('id_kelas').value = '';
+        document.getElementById('tanggal').value = '';
+        document.getElementById('jam_mulai').value = '';
+        document.getElementById('jam_selesai').value = '';
+        document.getElementById('laporan').value = '';
+        <?php endif; ?>
     </script>
 
     <script src="../assets/js/core/popper.min.js"></script>

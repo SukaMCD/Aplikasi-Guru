@@ -101,12 +101,12 @@
               <div class="card card-plain">
                 <div class="card-header pb-0 text-start">
                   <h4 class="font-weight-bolder">Sign In</h4>
-                  <p class="mb-0">Enter your username and password to sign in</p>
+                  <p class="mb-0">Enter your full name and password to sign in</p>
                 </div>
                 <div class="card-body">
                   <form role="form" id="login-form">
                     <div class="mb-3">
-                      <input type="text" name="username" class="form-control form-control-lg" placeholder="Email atau Username" aria-label="Username" required>
+                      <input type="text" name="username" class="form-control form-control-lg" placeholder="Email atau Nama Lengkap" aria-label="Username" required>
                     </div>
                     <div class="mb-3">
                       <input type="password" name="password" class="form-control form-control-lg" placeholder="Password" aria-label="Password" required>

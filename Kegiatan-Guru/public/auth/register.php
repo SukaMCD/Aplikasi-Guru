@@ -39,7 +39,7 @@
                 <div class="card-body">
                   <form role="form" id="register-form">
                     <div class="mb-3">
-                      <input type="text" name="username" class="form-control form-control-lg" placeholder="Username" aria-label="Username" required>
+                      <input type="text" name="username" class="form-control form-control-lg" placeholder="Nama Lengkap" aria-label="Username" required>
                     </div>
                     <div class="mb-3">
                       <input type="email" name="email" class="form-control form-control-lg" placeholder="Email" aria-label="Email" required>

@@ -5,6 +5,77 @@ if (!isset($_SESSION['user_id']) || $_SESSION['level'] !== 'murid') {
     exit();
 }
 include '../../config/koneksi.php';
+
+$current_user_id = $_SESSION['user_id'];
+$query_murid_id = "SELECT id_murid FROM murid WHERE id_user = $1";
+$result_murid_id = pg_query_params($conn, $query_murid_id, array($current_user_id));
+$current_murid_id = null;
+if ($result_murid_id && pg_num_rows($result_murid_id) > 0) {
+    $current_murid_id = pg_fetch_assoc($result_murid_id)['id_murid'];
+}
+
+// Get user info
+$query_user = "SELECT username FROM users WHERE id_user = $1";
+$result_user = pg_query_params($conn, $query_user, array($current_user_id));
+$user_info = pg_fetch_assoc($result_user);
+
+// Get statistics for all activities (not class-specific)
+$stats = array(
+    'today' => 0,
+    'week' => 0,
+    'month' => 0,
+    'total' => 0
+);
+
+// Today's activities
+$query_today = "SELECT COUNT(*) as count FROM kegiatan WHERE tanggal = CURRENT_DATE";
+$result_today = pg_query($conn, $query_today);
+$stats['today'] = pg_fetch_assoc($result_today)['count'];
+
+// This week's activities
+$query_week = "SELECT COUNT(*) as count FROM kegiatan WHERE tanggal >= date_trunc('week', CURRENT_DATE)";
+$result_week = pg_query($conn, $query_week);
+$stats['week'] = pg_fetch_assoc($result_week)['count'];
+
+// This month's activities
+$query_month = "SELECT COUNT(*) as count FROM kegiatan WHERE tanggal >= date_trunc('month', CURRENT_DATE)";
+$result_month = pg_query($conn, $query_month);
+$stats['month'] = pg_fetch_assoc($result_month)['count'];
+
+// Total activities
+$query_total = "SELECT COUNT(*) as count FROM kegiatan";
+$result_total = pg_query($conn, $query_total);
+$stats['total'] = pg_fetch_assoc($result_total)['count'];
+
+// Get recent ongoing activities (max 5) - all activities, not class-specific
+$recent_activities = array();
+$query_recent = "
+    SELECT 
+        k.id_kegiatan,
+        jk.nama_kegiatan as jenis_kegiatan,
+        CONCAT(kl.tingkat, ' ', kl.jurusan) as kelas,
+        k.tanggal,
+        k.jam_mulai,
+        k.jam_selesai,
+        k.id_status,
+        sk.status as status_name,
+        g.nama_guru
+    FROM kegiatan k
+    LEFT JOIN jenis_kegiatan jk ON k.id_jenis_kegiatan = jk.id_jenis_kegiatan
+    LEFT JOIN kelas kl ON k.id_kelas = kl.id_kelas
+    LEFT JOIN status_kegiatan sk ON k.id_status = sk.id_status
+    LEFT JOIN guru g ON k.id_guru = g.id_guru
+    WHERE k.id_status = 2
+    ORDER BY k.tanggal DESC, k.jam_mulai DESC
+    LIMIT 5
+";
+
+$result_recent = pg_query($conn, $query_recent);
+if ($result_recent) {
+    while ($row = pg_fetch_assoc($result_recent)) {
+        $recent_activities[] = $row;
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -15,7 +86,7 @@ include '../../config/koneksi.php';
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link rel="apple-touch-icon" sizes="76x76" href="../admin/assets/img/apple-icon.png">
     <link rel="icon" type="image/png" href="../assets/img/favicon.png">
-    <title>Dashboard Murid - Kegiatan Guru</title>
+    <title>Dashboard Murid - Portal Murid</title>
     
     <!-- Fonts and icons -->
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet" />
@@ -28,6 +99,32 @@ include '../../config/koneksi.php';
     <link href="https://demos.creative-tim.com/argon-dashboard-pro/assets/css/bootstrap-icons.css" rel="stylesheet" />
     <!-- CSS Files -->
     <link id="pagestyle" href="../assets/css/argon-dashboard.css?v=2.1.0" rel="stylesheet" />
+    <!-- Added custom CSS to fix compressed table columns -->
+    <style>
+        .table-responsive {
+            min-height: 300px;
+        }
+        .table-bordered th, .table-bordered td {
+            border: 1px solid #dee2e6 !important;
+            vertical-align: middle;
+            padding: 12px 15px;
+        }
+        .table thead th {
+            background-color: #f8f9fa;
+            border-bottom: 2px solid #dee2e6 !important;
+            font-weight: bold;
+        }
+        .table-bordered {
+            border: 1px solid #dee2e6 !important;
+        }
+        /* Set specific column widths to match guru dashboard proportions */
+        .table th:nth-child(1), .table td:nth-child(1) { width: 8%; text-align: center; } /* NO */
+        .table th:nth-child(2), .table td:nth-child(2) { width: 25%; } /* KEGIATAN */
+        .table th:nth-child(3), .table td:nth-child(3) { width: 20%; } /* KELAS */
+        .table th:nth-child(4), .table td:nth-child(4) { width: 15%; } /* TANGGAL */
+        .table th:nth-child(5), .table td:nth-child(5) { width: 17%; } /* WAKTU */
+        .table th:nth-child(6), .table td:nth-child(6) { width: 15%; } /* STATUS */
+    </style>
 </head>
 
 <body class="g-sidenav-show bg-gray-100">
@@ -54,11 +151,11 @@ include '../../config/koneksi.php';
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="kegiatan.php">
+                    <a class="nav-link" href="lihat_kegiatan.php">
                         <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
                             <i class="ni ni-credit-card text-dark text-sm opacity-10"></i>
                         </div>
-                        <span class="nav-link-text ms-1">Kegiatan</span>
+                        <span class="nav-link-text ms-1">Lihat Kegiatan</span>
                     </a>
                 </li>
                 <li class="nav-item mt-3">
@@ -73,7 +170,7 @@ include '../../config/koneksi.php';
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="../../app/controllers/proses_logout.php">
+                    <a class="nav-link" href="../app/controllers/proses_logout.php">
                         <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
                             <i class="ni ni-single-copy-04 text-dark text-sm opacity-10"></i>
                         </div>
@@ -105,7 +202,7 @@ include '../../config/koneksi.php';
                     </div>
                     <ul class="navbar-nav justify-content-end">
                         <li class="nav-item d-flex align-items-center">
-                            <a href="../../app/controllers/proses_logout.php" class="nav-link text-white font-weight-bold px-0">
+                            <a href="../app/controllers/proses_logout.php" class="nav-link text-white font-weight-bold px-0">
                                 <i class="fa fa-sign-out me-sm-1"></i>
                                 <span class="d-sm-inline d-none">Logout</span>
                             </a>
@@ -114,33 +211,10 @@ include '../../config/koneksi.php';
                 </div>
             </div>
         </nav>
-        <!-- End Navbar -->
 
         <div class="container-fluid py-4">
             <!-- Statistics Cards -->
             <div class="row">
-                <?php
-                // Query untuk menghitung total kegiatan hari ini
-                $query_today = "SELECT COUNT(*) FROM kegiatan WHERE tanggal = CURRENT_DATE";
-                $result_today = pg_query($conn, $query_today);
-                $total_today = pg_fetch_row($result_today)[0];
-
-                // Query untuk menghitung total kegiatan minggu ini
-                $query_week = "SELECT COUNT(*) FROM kegiatan WHERE tanggal >= CURRENT_DATE - INTERVAL '7 days' AND tanggal <= CURRENT_DATE";
-                $result_week = pg_query($conn, $query_week);
-                $total_week = pg_fetch_row($result_week)[0];
-
-                // Query untuk menghitung total kegiatan bulan ini
-                $query_month = "SELECT COUNT(*) FROM kegiatan WHERE EXTRACT(MONTH FROM tanggal) = EXTRACT(MONTH FROM CURRENT_DATE) AND EXTRACT(YEAR FROM tanggal) = EXTRACT(YEAR FROM CURRENT_DATE)";
-                $result_month = pg_query($conn, $query_month);
-                $total_month = pg_fetch_row($result_month)[0];
-
-                // Query untuk menghitung total kegiatan
-                $query_total = "SELECT COUNT(*) FROM kegiatan";
-                $result_total = pg_query($conn, $query_total);
-                $total_kegiatan = pg_fetch_row($result_total)[0];
-                ?>
-                
                 <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
                     <div class="card">
                         <div class="card-body p-3">
@@ -148,8 +222,12 @@ include '../../config/koneksi.php';
                                 <div class="col-8">
                                     <div class="numbers">
                                         <p class="text-sm mb-0 text-uppercase font-weight-bold">Kegiatan Hari Ini</p>
-                                        <h5 class="font-weight-bolder"><?php echo $total_today; ?></h5>
-                                        <p class="mb-0 text-success text-sm font-weight-bolder">Kegiatan Aktif</p>
+                                        <h5 class="font-weight-bolder">
+                                            <?php echo $stats['today']; ?>
+                                        </h5>
+                                        <p class="mb-0">
+                                            <span class="text-success text-sm font-weight-bolder">Semua Kegiatan</span>
+                                        </p>
                                     </div>
                                 </div>
                                 <div class="col-4 text-end">
@@ -161,7 +239,6 @@ include '../../config/koneksi.php';
                         </div>
                     </div>
                 </div>
-
                 <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
                     <div class="card">
                         <div class="card-body p-3">
@@ -169,8 +246,12 @@ include '../../config/koneksi.php';
                                 <div class="col-8">
                                     <div class="numbers">
                                         <p class="text-sm mb-0 text-uppercase font-weight-bold">Minggu Ini</p>
-                                        <h5 class="font-weight-bolder"><?php echo $total_week; ?></h5>
-                                        <p class="mb-0 text-info text-sm font-weight-bolder">7 Hari Terakhir</p>
+                                        <h5 class="font-weight-bolder">
+                                            <?php echo $stats['week']; ?>
+                                        </h5>
+                                        <p class="mb-0">
+                                            <span class="text-danger text-sm font-weight-bolder">7 Hari Terakhir</span>
+                                        </p>
                                     </div>
                                 </div>
                                 <div class="col-4 text-end">
@@ -182,7 +263,6 @@ include '../../config/koneksi.php';
                         </div>
                     </div>
                 </div>
-
                 <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
                     <div class="card">
                         <div class="card-body p-3">
@@ -190,8 +270,12 @@ include '../../config/koneksi.php';
                                 <div class="col-8">
                                     <div class="numbers">
                                         <p class="text-sm mb-0 text-uppercase font-weight-bold">Bulan Ini</p>
-                                        <h5 class="font-weight-bolder"><?php echo $total_month; ?></h5>
-                                        <p class="mb-0 text-warning text-sm font-weight-bolder">Kegiatan Bulanan</p>
+                                        <h5 class="font-weight-bolder">
+                                            <?php echo $stats['month']; ?>
+                                        </h5>
+                                        <p class="mb-0">
+                                            <span class="text-success text-sm font-weight-bolder">Semua Kegiatan</span>
+                                        </p>
                                     </div>
                                 </div>
                                 <div class="col-4 text-end">
@@ -203,7 +287,6 @@ include '../../config/koneksi.php';
                         </div>
                     </div>
                 </div>
-
                 <div class="col-xl-3 col-sm-6">
                     <div class="card">
                         <div class="card-body p-3">
@@ -211,8 +294,12 @@ include '../../config/koneksi.php';
                                 <div class="col-8">
                                     <div class="numbers">
                                         <p class="text-sm mb-0 text-uppercase font-weight-bold">Total Kegiatan</p>
-                                        <h5 class="font-weight-bolder"><?php echo $total_kegiatan; ?></h5>
-                                        <p class="mb-0 text-secondary text-sm font-weight-bolder">Semua Kegiatan</p>
+                                        <h5 class="font-weight-bolder">
+                                            <?php echo $stats['total']; ?>
+                                        </h5>
+                                        <p class="mb-0">
+                                            <span class="text-warning text-sm font-weight-bolder">Semua Kegiatan</span>
+                                        </p>
                                     </div>
                                 </div>
                                 <div class="col-4 text-end">
@@ -232,136 +319,68 @@ include '../../config/koneksi.php';
                     <div class="card mb-4">
                         <div class="card-header pb-0">
                             <div class="d-flex justify-content-between">
-                                <h6>Kegiatan Terbaru</h6>
-                                <a href="kegiatan.php" class="btn btn-sm btn-outline-primary">Lihat Semua</a>
+                                <h6>Kegiatan Berlangsung Semua Kelas</h6>
+                                <div>
+                                    <a href="lihat_kegiatan.php" class="btn btn-sm btn-outline-primary">Lihat Semua</a>
+                                </div>
                             </div>
                         </div>
                         <div class="card-body px-0 pt-0 pb-2">
                             <div class="table-responsive p-0">
-                                <table class="table align-items-center mb-0 border">
+                                <table class="table table-bordered align-items-center mb-0">
                                     <thead>
-                                        <tr class="border-bottom">
-                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 border-end">No</th>
-                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 border-end">Guru</th>
-                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 border-end">Kegiatan</th>
-                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 border-end">Kelas</th>
-                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 border-end">Tanggal</th>
-                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 border-end">Waktu</th>
-                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Status</th>
+                                        <tr>
+                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">NO</th>
+                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">KEGIATAN</th>
+                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">KELAS</th>
+                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">TANGGAL</th>
+                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">WAKTU</th>
+                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">STATUS</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <?php
-                                        // Query untuk mengambil 5 kegiatan terbaru
-                                        $query_recent = "
-                                            SELECT 
-                                                k.id_kegiatan,
-                                                g.nama_guru,
-                                                jk.nama_kegiatan as jenis_kegiatan,
-                                                CONCAT(kl.tingkat, ' ', kl.jurusan) as kelas,
-                                                k.tanggal,
-                                                k.jam_mulai,
-                                                k.jam_selesai,
-                                                k.id_status,
-                                                sk.status as status_name
-                                            FROM kegiatan k
-                                            LEFT JOIN guru g ON k.id_guru = g.id_guru
-                                            LEFT JOIN jenis_kegiatan jk ON k.id_jenis_kegiatan = jk.id_jenis_kegiatan
-                                            LEFT JOIN kelas kl ON k.id_kelas = kl.id_kelas
-                                            LEFT JOIN status_kegiatan sk ON k.id_status = sk.id_status
-                                            ORDER BY k.tanggal DESC, k.jam_mulai DESC
-                                            LIMIT 5
-                                        ";
-                                        $result_recent = pg_query($conn, $query_recent);
-
-                                        if ($result_recent && pg_num_rows($result_recent) > 0) {
-                                            $no = 1;
-                                            while ($row = pg_fetch_assoc($result_recent)) {
-                                                // Set status badge color
-                                                $status_class = '';
-                                                switch ($row['id_status']) {
-                                                    case '1': // Direncanakan
-                                                        $status_class = 'bg-gradient-secondary';
-                                                        break;
-                                                    case '2': // Berlangsung
-                                                        $status_class = 'bg-gradient-warning';
-                                                        break;
-                                                    case '3': // Selesai
-                                                        $status_class = 'bg-gradient-success';
-                                                        break;
-                                                    case '4': // Dibatalkan
-                                                        $status_class = 'bg-gradient-danger';
-                                                        break;
-                                                    default:
-                                                        $status_class = 'bg-gradient-secondary';
-                                                }
-                                        ?>
-                                            <tr class="border-bottom">
-                                                <td class="border-end text-center">
-                                                    <div class="d-flex justify-content-center px-3 py-2">
-                                                        <h6 class="mb-0 text-sm font-weight-bold"><?php echo $no; ?></h6>
-                                                    </div>
-                                                </td>
-                                                <td class="border-end">
-                                                    <div class="d-flex px-3 py-2">
-                                                        <div class="d-flex flex-column justify-content-center">
-                                                            <h6 class="mb-0 text-sm font-weight-bold"><?php echo $row['nama_guru'] ?? 'N/A'; ?></h6>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td class="border-end">
-                                                    <div class="d-flex px-3 py-2">
-                                                        <div class="d-flex flex-column justify-content-center">
-                                                            <h6 class="mb-0 text-sm"><?php echo $row['jenis_kegiatan'] ?? 'N/A'; ?></h6>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td class="border-end">
-                                                    <div class="d-flex px-3 py-2">
-                                                        <div class="d-flex flex-column justify-content-center">
-                                                            <h6 class="mb-0 text-sm"><?php echo $row['kelas'] ?? 'N/A'; ?></h6>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td class="border-end">
-                                                    <div class="d-flex px-3 py-2">
-                                                        <div class="d-flex flex-column justify-content-center">
-                                                            <h6 class="mb-0 text-sm"><?php echo date('d/m/Y', strtotime($row['tanggal'])); ?></h6>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td class="border-end">
-                                                    <div class="d-flex px-3 py-2">
-                                                        <div class="d-flex flex-column justify-content-center">
-                                                            <h6 class="mb-0 text-sm">
-                                                                <?php
-                                                                if (!empty($row['jam_mulai']) && !empty($row['jam_selesai'])) {
-                                                                    echo date('H:i', strtotime($row['jam_mulai'])) . ' - ' . date('H:i', strtotime($row['jam_selesai']));
-                                                                } else {
-                                                                    echo 'N/A';
-                                                                }
-                                                                ?>
-                                                            </h6>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td class="align-middle text-center text-sm">
-                                                    <span class="badge badge-sm <?php echo $status_class; ?>"><?php echo $row['status_name'] ?? 'N/A'; ?></span>
-                                                </td>
-                                            </tr>
-                                        <?php
-                                                $no++;
-                                            }
-                                        } else {
-                                        ?>
+                                        <?php if (!empty($recent_activities)): ?>
+                                            <?php foreach ($recent_activities as $index => $activity): ?>
+                                                <tr>
+                                                    <td class="text-center">
+                                                        <h6 class="mb-0 text-sm"><?php echo $index + 1; ?></h6>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <h6 class="mb-0 text-sm"><?php echo $activity['jenis_kegiatan'] ?? 'N/A'; ?></h6>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <h6 class="mb-0 text-sm"><?php echo $activity['kelas'] ?? 'N/A'; ?></h6>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <h6 class="mb-0 text-sm"><?php echo date('d/m/Y', strtotime($activity['tanggal'])); ?></h6>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <h6 class="mb-0 text-sm">
+                                                            <?php
+                                                            if (!empty($activity['jam_mulai']) && !empty($activity['jam_selesai'])) {
+                                                                echo date('H:i', strtotime($activity['jam_mulai'])) . ' - ' . date('H:i', strtotime($activity['jam_selesai']));
+                                                            } else {
+                                                                echo 'N/A';
+                                                            }
+                                                            ?>
+                                                        </h6>
+                                                    </td>
+                                                    <td class="align-middle text-center text-sm">
+                                                        <span class="badge badge-sm bg-gradient-warning"><?php echo $activity['status_name'] ?? 'N/A'; ?></span>
+                                                    </td>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        <?php else: ?>
                                             <tr>
-                                                <td colspan="7" class="text-center py-4">
-                                                    <p class="text-xs text-secondary mb-0">Belum ada kegiatan</p>
+                                                <td colspan="6" class="text-center py-4">
+                                                    <div class="text-center">
+                                                        <i class="fas fa-inbox fa-3x text-secondary mb-3"></i>
+                                                        <p class="text-sm text-secondary mb-0">Tidak ada kegiatan berlangsung saat ini</p>
+                                                        <p class="text-xs text-muted">Kegiatan akan muncul ketika guru memulai aktivitas</p>
+                                                    </div>
                                                 </td>
                                             </tr>
-                                        <?php
-                                        }
-                                        ?>
+                                        <?php endif; ?>
                                     </tbody>
                                 </table>
                             </div>

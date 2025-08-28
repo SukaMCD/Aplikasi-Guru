@@ -1,8 +1,7 @@
 <?php
 session_start();
 
-// Check if user is logged in and is admin
-if (!isset($_SESSION['user_id']) || $_SESSION['level'] !== 'admin') {
+if (!isset($_SESSION['user_id']) || ($_SESSION['level'] !== 'admin' && $_SESSION['level'] !== 'guru')) {
     header('Location: ../murid/index.php');
     exit();
 }
@@ -21,25 +20,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Validate required fields
     if (empty($id_guru) || empty($id_jenis_kegiatan) || empty($id_kelas) || empty($tanggal) || empty($jam_mulai) || empty($jam_selesai) || empty($laporan)) {
-        header('Location: ../../public/admin/tambah_kegiatan.php?msg=error_empty');
+        if ($_SESSION['level'] === 'admin') {
+            header('Location: ../../public/admin/tambah_kegiatan.php?msg=error_empty');
+        } else {
+            header('Location: ../../public/guru/tambah_kegiatan.php?msg=error_empty');
+        }
         exit();
     }
 
     // Validate date format
     if (!DateTime::createFromFormat('Y-m-d', $tanggal)) {
-        header('Location: ../../public/admin/tambah_kegiatan.php?msg=error_date');
+        if ($_SESSION['level'] === 'admin') {
+            header('Location: ../../public/admin/tambah_kegiatan.php?msg=error_date');
+        } else {
+            header('Location: ../../public/guru/tambah_kegiatan.php?msg=error_date');
+        }
         exit();
     }
 
     if (!DateTime::createFromFormat('H:i', $jam_mulai) || !DateTime::createFromFormat('H:i', $jam_selesai)) {
-        header('Location: ../../public/admin/tambah_kegiatan.php?msg=error_time');
+        if ($_SESSION['level'] === 'admin') {
+            header('Location: ../../public/admin/tambah_kegiatan.php?msg=error_time');
+        } else {
+            header('Location: ../../public/guru/tambah_kegiatan.php?msg=error_time');
+        }
         exit();
     }
 
     $start_time = DateTime::createFromFormat('H:i', $jam_mulai);
     $end_time = DateTime::createFromFormat('H:i', $jam_selesai);
     if ($end_time <= $start_time) {
-        header('Location: ../../public/admin/tambah_kegiatan.php?msg=error_time_order');
+        if ($_SESSION['level'] === 'admin') {
+            header('Location: ../../public/admin/tambah_kegiatan.php?msg=error_time_order');
+        } else {
+            header('Location: ../../public/guru/tambah_kegiatan.php?msg=error_time_order');
+        }
         exit();
     }
 
@@ -51,7 +66,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             array($id_guru));
         if (!$guru_check || pg_num_rows($guru_check) === 0) {
             error_log("Guru not found or not approved: " . $id_guru);
-            header('Location: ../../public/admin/tambah_kegiatan.php?msg=error_invalid');
+            if ($_SESSION['level'] === 'admin') {
+                header('Location: ../../public/admin/tambah_kegiatan.php?msg=error_invalid');
+            } else {
+                header('Location: ../../public/guru/tambah_kegiatan.php?msg=error_invalid');
+            }
             exit();
         }
 
@@ -59,7 +78,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $jenis_check = pg_query_params($conn, "SELECT id_jenis_kegiatan FROM jenis_kegiatan WHERE id_jenis_kegiatan = $1", array($id_jenis_kegiatan));
         if (!$jenis_check || pg_num_rows($jenis_check) === 0) {
             error_log("Jenis kegiatan not found: " . $id_jenis_kegiatan);
-            header('Location: ../../public/admin/tambah_kegiatan.php?msg=error_invalid');
+            if ($_SESSION['level'] === 'admin') {
+                header('Location: ../../public/admin/tambah_kegiatan.php?msg=error_invalid');
+            } else {
+                header('Location: ../../public/guru/tambah_kegiatan.php?msg=error_invalid');
+            }
             exit();
         }
 
@@ -67,7 +90,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $kelas_check = pg_query_params($conn, "SELECT id_kelas FROM kelas WHERE id_kelas = $1", array($id_kelas));
         if (!$kelas_check || pg_num_rows($kelas_check) === 0) {
             error_log("Kelas not found: " . $id_kelas);
-            header('Location: ../../public/admin/tambah_kegiatan.php?msg=error_invalid');
+            if ($_SESSION['level'] === 'admin') {
+                header('Location: ../../public/admin/tambah_kegiatan.php?msg=error_invalid');
+            } else {
+                header('Location: ../../public/guru/tambah_kegiatan.php?msg=error_invalid');
+            }
             exit();
         }
 
@@ -102,7 +129,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $jam_mulai_existing = date('H:i', strtotime($conflict_data['jam_mulai']));
             $jam_selesai_existing = date('H:i', strtotime($conflict_data['jam_selesai']));
             
-            header('Location: ../../public/admin/tambah_kegiatan.php?msg=error_time_conflict&kelas=' . urlencode($kelas_nama) . '&tanggal=' . urlencode($tanggal) . '&jam=' . urlencode($jam_mulai . ' - ' . $jam_selesai) . '&guru=' . urlencode($guru_nama) . '&jenis=' . urlencode($jenis_kegiatan));
+            if ($_SESSION['level'] === 'admin') {
+                header('Location: ../../public/admin/tambah_kegiatan.php?msg=error_time_conflict&kelas=' . urlencode($kelas_nama) . '&tanggal=' . urlencode($tanggal) . '&jam=' . urlencode($jam_mulai . ' - ' . $jam_selesai) . '&guru=' . urlencode($guru_nama) . '&jenis=' . urlencode($jenis_kegiatan));
+            } else {
+                header('Location: ../../public/guru/tambah_kegiatan.php?msg=error_time_conflict&kelas=' . urlencode($kelas_nama) . '&tanggal=' . urlencode($tanggal) . '&jam=' . urlencode($jam_mulai . ' - ' . $jam_selesai) . '&guru=' . urlencode($guru_nama) . '&jenis=' . urlencode($jenis_kegiatan));
+            }
             exit();
         }
         
@@ -139,7 +170,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $jam_mulai_existing = date('H:i', strtotime($conflict_data['jam_mulai']));
             $jam_selesai_existing = date('H:i', strtotime($conflict_data['jam_selesai']));
             
-            header('Location: ../../public/admin/tambah_kegiatan.php?msg=error_teacher_conflict&kelas=' . urlencode($kelas_nama) . '&tanggal=' . urlencode($tanggal) . '&jam=' . urlencode($jam_mulai . ' - ' . $jam_selesai) . '&guru=' . urlencode($guru_nama) . '&jenis=' . urlencode($jenis_kegiatan));
+            if ($_SESSION['level'] === 'admin') {
+                header('Location: ../../public/admin/tambah_kegiatan.php?msg=error_teacher_conflict&kelas=' . urlencode($kelas_nama) . '&tanggal=' . urlencode($tanggal) . '&jam=' . urlencode($jam_mulai . ' - ' . $jam_selesai) . '&guru=' . urlencode($guru_nama) . '&jenis=' . urlencode($jenis_kegiatan));
+            } else {
+                header('Location: ../../public/guru/tambah_kegiatan.php?msg=error_teacher_conflict&kelas=' . urlencode($kelas_nama) . '&tanggal=' . urlencode($tanggal) . '&jam=' . urlencode($jam_mulai . ' - ' . $jam_selesai) . '&guru=' . urlencode($guru_nama) . '&jenis=' . urlencode($jenis_kegiatan));
+            }
             exit();
         }
 
@@ -153,7 +188,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     } catch (Exception $e) {
         error_log("Database validation error: " . $e->getMessage());
-        header('Location: ../../public/admin/tambah_kegiatan.php?msg=error_invalid');
+        if ($_SESSION['level'] === 'admin') {
+            header('Location: ../../public/admin/tambah_kegiatan.php?msg=error_invalid');
+        } else {
+            header('Location: ../../public/guru/tambah_kegiatan.php?msg=error_invalid');
+        }
         exit();
     }
 
@@ -177,8 +216,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($result) {
             // Commit transaction
             pg_query($conn, "COMMIT");
-            // Success - redirect with success message
-            header('Location: ../../public/admin/kegiatan.php?msg=success');
+            
+            if ($_SESSION['level'] === 'admin') {
+                header('Location: ../../public/admin/kegiatan.php?msg=success');
+            } else {
+                header('Location: ../../public/guru/index.php?msg=success');
+            }
             exit();
         } else {
             // Rollback transaction
@@ -194,7 +237,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit();
     }
 } else {
-    // If not POST request, redirect back to form
-    header('Location: ../../public/admin/tambah_kegiatan.php');
+    if ($_SESSION['level'] === 'admin') {
+        header('Location: ../../public/admin/tambah_kegiatan.php');
+    } else {
+        header('Location: ../../public/guru/tambah_kegiatan.php');
+    }
     exit();
 }

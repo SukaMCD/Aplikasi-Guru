@@ -63,7 +63,7 @@ if ($result_guru_id && pg_num_rows($result_guru_id) > 0) {
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="kegiatan.php">
+                    <a class="nav-link" href="lihat_kegiatan.php">
                         <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
                             <i class="ni ni-credit-card text-dark text-sm opacity-10"></i>
                         </div>
@@ -91,7 +91,7 @@ if ($result_guru_id && pg_num_rows($result_guru_id) > 0) {
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="../../app/controllers/proses_logout.php">
+                    <a class="nav-link" href="../app/controllers/proses_logout.php">
                         <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
                             <i class="ni ni-single-copy-04 text-dark text-sm opacity-10"></i>
                         </div>
@@ -124,7 +124,7 @@ if ($result_guru_id && pg_num_rows($result_guru_id) > 0) {
                     </div>
                     <ul class="navbar-nav justify-content-end">
                         <li class="nav-item d-flex align-items-center">
-                            <a href="../../app/controllers/proses_logout.php" class="nav-link text-white font-weight-bold px-0">
+                            <a href="../app/controllers/proses_logout.php" class="nav-link text-white font-weight-bold px-0">
                                 <i class="fa fa-sign-out me-sm-1"></i>
                                 <span class="d-sm-inline d-none">Logout</span>
                             </a>
@@ -256,7 +256,7 @@ if ($result_guru_id && pg_num_rows($result_guru_id) > 0) {
                                 <!-- Changed title and link for guru -->
                                 <h6>Kegiatan Terbaru Saya</h6>
                                 <div>
-                                    <a href="kegiatan.php" class="btn btn-sm btn-outline-primary me-2">Lihat Semua</a>
+                                    <a href="lihat_kegiatan.php" class="btn btn-sm btn-outline-primary me-2">Lihat Semua</a>
                                     <a href="tambah_kegiatan.php" class="btn btn-sm btn-primary">Tambah Kegiatan</a>
                                 </div>
                             </div>
@@ -290,7 +290,7 @@ if ($result_guru_id && pg_num_rows($result_guru_id) > 0) {
                                             LEFT JOIN jenis_kegiatan jk ON k.id_jenis_kegiatan = jk.id_jenis_kegiatan
                                             LEFT JOIN kelas kl ON k.id_kelas = kl.id_kelas
                                             LEFT JOIN status_kegiatan sk ON k.id_status = sk.id_status
-                                            WHERE k.id_guru = $1
+                                            WHERE k.id_guru = $1 AND k.id_status = '2'
                                             ORDER BY k.tanggal DESC, k.jam_mulai DESC
                                             LIMIT 5
                                         ";

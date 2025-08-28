@@ -5,7 +5,7 @@
 -- Dumped from database version 17.5
 -- Dumped by pg_dump version 17.5
 
--- Started on 2025-08-27 15:33:55
+-- Started on 2025-08-28 20:58:25
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -19,9 +19,67 @@ SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
 
+--
+-- TOC entry 233 (class 1255 OID 74292)
+-- Name: update_updated_at_column(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.update_updated_at_column() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION public.update_updated_at_column() OWNER TO postgres;
+
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
+
+--
+-- TOC entry 232 (class 1259 OID 74274)
+-- Name: approval_logs; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.approval_logs (
+    id_log integer NOT NULL,
+    admin_id integer NOT NULL,
+    user_id integer NOT NULL,
+    action character varying(20) NOT NULL,
+    created_at timestamp without time zone DEFAULT now()
+);
+
+
+ALTER TABLE public.approval_logs OWNER TO postgres;
+
+--
+-- TOC entry 231 (class 1259 OID 74273)
+-- Name: approval_logs_id_log_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.approval_logs_id_log_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.approval_logs_id_log_seq OWNER TO postgres;
+
+--
+-- TOC entry 4986 (class 0 OID 0)
+-- Dependencies: 231
+-- Name: approval_logs_id_log_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.approval_logs_id_log_seq OWNED BY public.approval_logs.id_log;
+
 
 --
 -- TOC entry 228 (class 1259 OID 74240)
@@ -54,7 +112,7 @@ CREATE SEQUENCE public.guru_id_guru_seq
 ALTER SEQUENCE public.guru_id_guru_seq OWNER TO postgres;
 
 --
--- TOC entry 4968 (class 0 OID 0)
+-- TOC entry 4987 (class 0 OID 0)
 -- Dependencies: 227
 -- Name: guru_id_guru_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -91,7 +149,7 @@ CREATE SEQUENCE public.jenis_kegiatan_id_jenis_kegiatan_seq
 ALTER SEQUENCE public.jenis_kegiatan_id_jenis_kegiatan_seq OWNER TO postgres;
 
 --
--- TOC entry 4969 (class 0 OID 0)
+-- TOC entry 4988 (class 0 OID 0)
 -- Dependencies: 217
 -- Name: jenis_kegiatan_id_jenis_kegiatan_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -166,7 +224,7 @@ CREATE SEQUENCE public.kelas_id_kelas_seq
 ALTER SEQUENCE public.kelas_id_kelas_seq OWNER TO postgres;
 
 --
--- TOC entry 4970 (class 0 OID 0)
+-- TOC entry 4989 (class 0 OID 0)
 -- Dependencies: 219
 -- Name: kelas_id_kelas_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -205,7 +263,7 @@ CREATE SEQUENCE public.murid_id_murid_seq
 ALTER SEQUENCE public.murid_id_murid_seq OWNER TO postgres;
 
 --
--- TOC entry 4971 (class 0 OID 0)
+-- TOC entry 4990 (class 0 OID 0)
 -- Dependencies: 229
 -- Name: murid_id_murid_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -243,7 +301,7 @@ CREATE SEQUENCE public.status_kegiatan_id_status_seq
 ALTER SEQUENCE public.status_kegiatan_id_status_seq OWNER TO postgres;
 
 --
--- TOC entry 4972 (class 0 OID 0)
+-- TOC entry 4991 (class 0 OID 0)
 -- Dependencies: 223
 -- Name: status_kegiatan_id_status_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -262,7 +320,9 @@ CREATE TABLE public.users (
     email character varying(255) NOT NULL,
     password character varying(255) NOT NULL,
     level character varying(255),
-    status character varying(20) DEFAULT 'pending'::character varying
+    status character varying(20) DEFAULT 'pending'::character varying,
+    created_at timestamp without time zone DEFAULT now(),
+    updated_at timestamp without time zone DEFAULT now()
 );
 
 
@@ -284,7 +344,7 @@ CREATE SEQUENCE public.users_id_user_seq
 ALTER SEQUENCE public.users_id_user_seq OWNER TO postgres;
 
 --
--- TOC entry 4973 (class 0 OID 0)
+-- TOC entry 4992 (class 0 OID 0)
 -- Dependencies: 221
 -- Name: users_id_user_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -293,7 +353,15 @@ ALTER SEQUENCE public.users_id_user_seq OWNED BY public.users.id_user;
 
 
 --
--- TOC entry 4777 (class 2604 OID 74243)
+-- TOC entry 4787 (class 2604 OID 74277)
+-- Name: approval_logs id_log; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.approval_logs ALTER COLUMN id_log SET DEFAULT nextval('public.approval_logs_id_log_seq'::regclass);
+
+
+--
+-- TOC entry 4785 (class 2604 OID 74243)
 -- Name: guru id_guru; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -301,7 +369,7 @@ ALTER TABLE ONLY public.guru ALTER COLUMN id_guru SET DEFAULT nextval('public.gu
 
 
 --
--- TOC entry 4772 (class 2604 OID 16973)
+-- TOC entry 4778 (class 2604 OID 16973)
 -- Name: jenis_kegiatan id_jenis_kegiatan; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -309,7 +377,7 @@ ALTER TABLE ONLY public.jenis_kegiatan ALTER COLUMN id_jenis_kegiatan SET DEFAUL
 
 
 --
--- TOC entry 4773 (class 2604 OID 33207)
+-- TOC entry 4779 (class 2604 OID 33207)
 -- Name: kelas id_kelas; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -317,7 +385,7 @@ ALTER TABLE ONLY public.kelas ALTER COLUMN id_kelas SET DEFAULT nextval('public.
 
 
 --
--- TOC entry 4778 (class 2604 OID 74255)
+-- TOC entry 4786 (class 2604 OID 74255)
 -- Name: murid id_murid; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -325,7 +393,7 @@ ALTER TABLE ONLY public.murid ALTER COLUMN id_murid SET DEFAULT nextval('public.
 
 
 --
--- TOC entry 4776 (class 2604 OID 41357)
+-- TOC entry 4784 (class 2604 OID 41357)
 -- Name: status_kegiatan id_status; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -333,7 +401,7 @@ ALTER TABLE ONLY public.status_kegiatan ALTER COLUMN id_status SET DEFAULT nextv
 
 
 --
--- TOC entry 4774 (class 2604 OID 33253)
+-- TOC entry 4780 (class 2604 OID 33253)
 -- Name: users id_user; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -341,7 +409,21 @@ ALTER TABLE ONLY public.users ALTER COLUMN id_user SET DEFAULT nextval('public.u
 
 
 --
--- TOC entry 4960 (class 0 OID 74240)
+-- TOC entry 4980 (class 0 OID 74274)
+-- Dependencies: 232
+-- Data for Name: approval_logs; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.approval_logs (id_log, admin_id, user_id, action, created_at) FROM stdin;
+1	1	5	approve	2025-08-28 14:29:48.644517
+2	1	2	approve	2025-08-28 14:29:53.459353
+3	1	3	reject	2025-08-28 14:37:47.479513
+4	1	4	approve	2025-08-28 14:51:55.831323
+\.
+
+
+--
+-- TOC entry 4976 (class 0 OID 74240)
 -- Dependencies: 228
 -- Data for Name: guru; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -351,7 +433,7 @@ COPY public.guru (id_guru, nama_guru, nip, id_user) FROM stdin;
 
 
 --
--- TOC entry 4950 (class 0 OID 16970)
+-- TOC entry 4966 (class 0 OID 16970)
 -- Dependencies: 218
 -- Data for Name: jenis_kegiatan; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -362,7 +444,7 @@ COPY public.jenis_kegiatan (id_jenis_kegiatan, nama_kegiatan) FROM stdin;
 
 
 --
--- TOC entry 4958 (class 0 OID 41386)
+-- TOC entry 4974 (class 0 OID 41386)
 -- Dependencies: 226
 -- Data for Name: kegiatan; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -372,7 +454,7 @@ COPY public.kegiatan (id_kegiatan, id_guru, id_jenis_kegiatan, id_kelas, tanggal
 
 
 --
--- TOC entry 4952 (class 0 OID 33204)
+-- TOC entry 4968 (class 0 OID 33204)
 -- Dependencies: 220
 -- Data for Name: kelas; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -391,7 +473,7 @@ COPY public.kelas (id_kelas, tingkat, jurusan) FROM stdin;
 
 
 --
--- TOC entry 4962 (class 0 OID 74252)
+-- TOC entry 4978 (class 0 OID 74252)
 -- Dependencies: 230
 -- Data for Name: murid; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -401,7 +483,7 @@ COPY public.murid (id_murid, nama_murid, nis, id_user) FROM stdin;
 
 
 --
--- TOC entry 4956 (class 0 OID 41354)
+-- TOC entry 4972 (class 0 OID 41354)
 -- Dependencies: 224
 -- Data for Name: status_kegiatan; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -415,20 +497,32 @@ COPY public.status_kegiatan (id_status, status) FROM stdin;
 
 
 --
--- TOC entry 4954 (class 0 OID 33250)
+-- TOC entry 4970 (class 0 OID 33250)
 -- Dependencies: 222
 -- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.users (id_user, username, email, password, level, status) FROM stdin;
-5	Guru	guru@gmail.com	$2y$10$SQbIYCy21ADAKF3IOn5ejORRJQiFoBaAPWe4V2qLmTDCVZXXKrcqm	guru	pending
-2	murid	murid@gmail.com	$2y$10$UGjvNnpxMaD9C2RH7v2YhuHwGPXa.Eq03gIOndYN2Cq.TicCOpxoS	murid	pending
-1	admin	admin@gmail.com	$2y$10$eBUCGJYDUSSlE9w.Oj/KjOlbI3ejjWHQs5tpB2K76V6vJsN1CRLYu	admin	pending
+COPY public.users (id_user, username, email, password, level, status, created_at, updated_at) FROM stdin;
+1	admin	admin@gmail.com	$2y$10$eBUCGJYDUSSlE9w.Oj/KjOlbI3ejjWHQs5tpB2K76V6vJsN1CRLYu	admin	approved	2025-08-28 14:27:30.881609	2025-08-28 14:27:30.881609
+5	Guru	guru@gmail.com	$2y$10$SQbIYCy21ADAKF3IOn5ejORRJQiFoBaAPWe4V2qLmTDCVZXXKrcqm	guru	approved	2025-08-28 14:27:30.881609	2025-08-28 14:29:48.606974
+2	murid	murid@gmail.com	$2y$10$UGjvNnpxMaD9C2RH7v2YhuHwGPXa.Eq03gIOndYN2Cq.TicCOpxoS	murid	approved	2025-08-28 14:27:30.881609	2025-08-28 14:29:53.457194
+3	ayam	ayam@gmail.com	$2y$10$OvCcEbmIRZIyXuPUmzNnX.h0Dconm3ctpQ8aks0IkmNseUM3DhbM6	murid	rejected	2025-08-28 14:35:40.015577	2025-08-28 14:37:47.469909
+4	sdw	yam@gmail.com	$2y$10$uyFCgODrag694fyCfok1/euoqaRApIbpOLNNRl7u.YZ0.GO9eJZfu	guru	approved	2025-08-28 14:40:40.90913	2025-08-28 14:51:55.819288
+6	admins	dadada@gmail.com	$2y$10$hRap3IvLY9RFFDIbSOasyOc0J78tyJseuKal5i.a7LwqH5VqSIXTu	murid	pending	2025-08-28 15:07:29.195176	2025-08-28 15:07:29.195176
 \.
 
 
 --
--- TOC entry 4974 (class 0 OID 0)
+-- TOC entry 4993 (class 0 OID 0)
+-- Dependencies: 231
+-- Name: approval_logs_id_log_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.approval_logs_id_log_seq', 4, true);
+
+
+--
+-- TOC entry 4994 (class 0 OID 0)
 -- Dependencies: 227
 -- Name: guru_id_guru_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -437,7 +531,7 @@ SELECT pg_catalog.setval('public.guru_id_guru_seq', 1, false);
 
 
 --
--- TOC entry 4975 (class 0 OID 0)
+-- TOC entry 4995 (class 0 OID 0)
 -- Dependencies: 217
 -- Name: jenis_kegiatan_id_jenis_kegiatan_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -446,7 +540,7 @@ SELECT pg_catalog.setval('public.jenis_kegiatan_id_jenis_kegiatan_seq', 1, true)
 
 
 --
--- TOC entry 4976 (class 0 OID 0)
+-- TOC entry 4996 (class 0 OID 0)
 -- Dependencies: 225
 -- Name: kegiatan_id_kegiatan_seq1; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -455,7 +549,7 @@ SELECT pg_catalog.setval('public.kegiatan_id_kegiatan_seq1', 9, true);
 
 
 --
--- TOC entry 4977 (class 0 OID 0)
+-- TOC entry 4997 (class 0 OID 0)
 -- Dependencies: 219
 -- Name: kelas_id_kelas_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -464,7 +558,7 @@ SELECT pg_catalog.setval('public.kelas_id_kelas_seq', 1, false);
 
 
 --
--- TOC entry 4978 (class 0 OID 0)
+-- TOC entry 4998 (class 0 OID 0)
 -- Dependencies: 229
 -- Name: murid_id_murid_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -473,7 +567,7 @@ SELECT pg_catalog.setval('public.murid_id_murid_seq', 1, false);
 
 
 --
--- TOC entry 4979 (class 0 OID 0)
+-- TOC entry 4999 (class 0 OID 0)
 -- Dependencies: 223
 -- Name: status_kegiatan_id_status_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -482,16 +576,25 @@ SELECT pg_catalog.setval('public.status_kegiatan_id_status_seq', 4, true);
 
 
 --
--- TOC entry 4980 (class 0 OID 0)
+-- TOC entry 5000 (class 0 OID 0)
 -- Dependencies: 221
 -- Name: users_id_user_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.users_id_user_seq', 1, false);
+SELECT pg_catalog.setval('public.users_id_user_seq', 6, true);
 
 
 --
--- TOC entry 4795 (class 2606 OID 74245)
+-- TOC entry 4810 (class 2606 OID 74280)
+-- Name: approval_logs approval_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.approval_logs
+    ADD CONSTRAINT approval_logs_pkey PRIMARY KEY (id_log);
+
+
+--
+-- TOC entry 4806 (class 2606 OID 74245)
 -- Name: guru guru_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -500,7 +603,7 @@ ALTER TABLE ONLY public.guru
 
 
 --
--- TOC entry 4780 (class 2606 OID 16975)
+-- TOC entry 4790 (class 2606 OID 16975)
 -- Name: jenis_kegiatan jenis_kegiatan_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -509,7 +612,7 @@ ALTER TABLE ONLY public.jenis_kegiatan
 
 
 --
--- TOC entry 4793 (class 2606 OID 41392)
+-- TOC entry 4804 (class 2606 OID 41392)
 -- Name: kegiatan kegiatan_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -518,7 +621,7 @@ ALTER TABLE ONLY public.kegiatan
 
 
 --
--- TOC entry 4782 (class 2606 OID 33209)
+-- TOC entry 4792 (class 2606 OID 33209)
 -- Name: kelas kelas_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -527,7 +630,7 @@ ALTER TABLE ONLY public.kelas
 
 
 --
--- TOC entry 4797 (class 2606 OID 74257)
+-- TOC entry 4808 (class 2606 OID 74257)
 -- Name: murid murid_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -536,7 +639,7 @@ ALTER TABLE ONLY public.murid
 
 
 --
--- TOC entry 4789 (class 2606 OID 41359)
+-- TOC entry 4800 (class 2606 OID 41359)
 -- Name: status_kegiatan status_kegiatan_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -545,7 +648,7 @@ ALTER TABLE ONLY public.status_kegiatan
 
 
 --
--- TOC entry 4791 (class 2606 OID 41361)
+-- TOC entry 4802 (class 2606 OID 41361)
 -- Name: status_kegiatan status_kegiatan_status_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -554,7 +657,7 @@ ALTER TABLE ONLY public.status_kegiatan
 
 
 --
--- TOC entry 4785 (class 2606 OID 74169)
+-- TOC entry 4796 (class 2606 OID 74169)
 -- Name: users users_email_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -563,7 +666,7 @@ ALTER TABLE ONLY public.users
 
 
 --
--- TOC entry 4787 (class 2606 OID 33257)
+-- TOC entry 4798 (class 2606 OID 33257)
 -- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -572,7 +675,7 @@ ALTER TABLE ONLY public.users
 
 
 --
--- TOC entry 4783 (class 1259 OID 74209)
+-- TOC entry 4793 (class 1259 OID 74209)
 -- Name: idx_users_status; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -580,7 +683,41 @@ CREATE INDEX idx_users_status ON public.users USING btree (status);
 
 
 --
--- TOC entry 4802 (class 2606 OID 74246)
+-- TOC entry 4794 (class 1259 OID 74291)
+-- Name: idx_users_status_created; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_users_status_created ON public.users USING btree (status, created_at DESC);
+
+
+--
+-- TOC entry 4819 (class 2620 OID 74293)
+-- Name: users update_users_updated_at; Type: TRIGGER; Schema: public; Owner: postgres
+--
+
+CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON public.users FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+
+--
+-- TOC entry 4817 (class 2606 OID 74281)
+-- Name: approval_logs approval_logs_admin_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.approval_logs
+    ADD CONSTRAINT approval_logs_admin_id_fkey FOREIGN KEY (admin_id) REFERENCES public.users(id_user) ON DELETE CASCADE;
+
+
+--
+-- TOC entry 4818 (class 2606 OID 74286)
+-- Name: approval_logs approval_logs_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.approval_logs
+    ADD CONSTRAINT approval_logs_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id_user) ON DELETE CASCADE;
+
+
+--
+-- TOC entry 4815 (class 2606 OID 74246)
 -- Name: guru fk_id_user_guru; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -589,7 +726,7 @@ ALTER TABLE ONLY public.guru
 
 
 --
--- TOC entry 4803 (class 2606 OID 74258)
+-- TOC entry 4816 (class 2606 OID 74258)
 -- Name: murid fk_id_user_murid; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -598,7 +735,7 @@ ALTER TABLE ONLY public.murid
 
 
 --
--- TOC entry 4798 (class 2606 OID 74263)
+-- TOC entry 4811 (class 2606 OID 74263)
 -- Name: kegiatan fk_kegiatan_guru; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -607,7 +744,7 @@ ALTER TABLE ONLY public.kegiatan
 
 
 --
--- TOC entry 4799 (class 2606 OID 41398)
+-- TOC entry 4812 (class 2606 OID 41398)
 -- Name: kegiatan fk_kegiatan_jenis; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -616,7 +753,7 @@ ALTER TABLE ONLY public.kegiatan
 
 
 --
--- TOC entry 4800 (class 2606 OID 41403)
+-- TOC entry 4813 (class 2606 OID 41403)
 -- Name: kegiatan fk_kegiatan_kelas; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -625,7 +762,7 @@ ALTER TABLE ONLY public.kegiatan
 
 
 --
--- TOC entry 4801 (class 2606 OID 41408)
+-- TOC entry 4814 (class 2606 OID 41408)
 -- Name: kegiatan fk_kegiatan_status; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -633,7 +770,7 @@ ALTER TABLE ONLY public.kegiatan
     ADD CONSTRAINT fk_kegiatan_status FOREIGN KEY (id_status) REFERENCES public.status_kegiatan(id_status);
 
 
--- Completed on 2025-08-27 15:33:55
+-- Completed on 2025-08-28 20:58:25
 
 --
 -- PostgreSQL database dump complete

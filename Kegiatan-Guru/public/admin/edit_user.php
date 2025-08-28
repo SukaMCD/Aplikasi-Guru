@@ -20,8 +20,7 @@ $user = null;
 if (isset($_GET['id'])) {
     $user_id = $_GET['id'];
 
-    // Ambil data user
-    $query = "SELECT id_user, username, email, level FROM users WHERE id_user = $1";
+    $query = "SELECT id_user, username, email, level, status FROM users WHERE id_user = $1";
     $result = pg_query_params($conn, $query, array($user_id));
     $user = pg_fetch_assoc($result);
 
@@ -96,6 +95,17 @@ if (isset($_GET['id'])) {
                                             <option value="admin" <?php echo ($user['level'] == 'admin') ? 'selected' : ''; ?>>Admin</option>
                                         </select>
                                     </div>
+
+                                    <!-- Added approval status field -->
+                                    <div class="form-group">
+                                        <label for="status">Status Approval</label>
+                                        <select class="form-control" id="status" name="status" required>
+                                            <option value="pending" <?php echo ($user['status'] == 'pending') ? 'selected' : ''; ?>>Pending</option>
+                                            <option value="approved" <?php echo ($user['status'] == 'approved') ? 'selected' : ''; ?>>Approved</option>
+                                            <option value="rejected" <?php echo ($user['status'] == 'rejected') ? 'selected' : ''; ?>>Rejected</option>
+                                        </select>
+                                    </div>
+
                                     <button type="submit" class="btn btn-primary">Update User</button>
                                 </form>
                             <?php else: ?>

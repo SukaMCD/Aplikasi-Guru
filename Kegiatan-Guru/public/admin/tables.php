@@ -19,6 +19,10 @@ if (!isset($_SESSION['user_id']) || $_SESSION['level'] !== 'admin') {
   exit();
 }
 include '../../config/koneksi.php'; // Pastikan koneksi database sudah benar
+
+$pending_count_query = "SELECT COUNT(*) as count FROM users WHERE status = 'pending'";
+$pending_count_result = pg_query($conn, $pending_count_query);
+$pending_count = pg_fetch_assoc($pending_count_result)['count'];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -181,22 +185,12 @@ include '../../config/koneksi.php'; // Pastikan koneksi database sudah benar
                 <i class="fa fa-cog fixed-plugin-button-nav cursor-pointer"></i>
               </a>
             </li>
+            <!-- Removed notification badge from bell icon -->
             <li class="nav-item dropdown pe-2 d-flex align-items-center">
               <a href="javascript:;" class="nav-link text-white p-0" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
-                <!-- Added notification badge for pending approvals -->
                 <i class="fa fa-bell cursor-pointer"></i>
-                <?php
-                $pending_query = "SELECT COUNT(*) as pending_count FROM users WHERE status = 'pending'";
-                $pending_result = pg_query($conn, $pending_query);
-                $pending_count = pg_fetch_assoc($pending_result)['pending_count'];
-                if ($pending_count > 0) {
-                  echo '<span class="badge badge-sm bg-gradient-danger position-absolute top-0 start-100 translate-middle">' . $pending_count . '</span>';
-                }
-                ?>
               </a>
             </li>
-          </ul>
-          </li>
           </ul>
         </div>
       </div>

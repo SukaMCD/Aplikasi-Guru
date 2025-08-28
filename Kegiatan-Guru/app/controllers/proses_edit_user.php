@@ -13,6 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $email = $_POST['email'];
     $level = $_POST['level'];
     $new_password = $_POST['new_password'];
+    $status = $_POST['status'];
 
     $result_update = false;
 
@@ -20,15 +21,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (!empty($new_password)) {
         // Jika ada password baru, hash password
         $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
-        $query = "UPDATE users SET username = $1, email = $2, password = $3, level = $4 WHERE id_user = $5";
-        $result_update = pg_query_params($conn, $query, [$username, $email, $hashed_password, $level, $user_id]);
+        $query = "UPDATE users SET username = $1, email = $2, password = $3, level = $4, status = $5, updated_at = NOW() WHERE id_user = $6";
+        $result_update = pg_query_params($conn, $query, [$username, $email, $hashed_password, $level, $status, $user_id]);
     } else {
         // Jika tidak ada password baru, update tanpa password
-        $query = "UPDATE users SET username = $1, email = $2, level = $3 WHERE id_user = $4";
-        $result_update = pg_query_params($conn, $query, [$username, $email, $level, $user_id]);
+        $query = "UPDATE users SET username = $1, email = $2, level = $3, status = $4, updated_at = NOW() WHERE id_user = $5";
+        $result_update = pg_query_params($conn, $query, [$username, $email, $level, $status, $user_id]);
     }
 
     if ($result_update) {
+        $log_query = "INSERT INTO approval_logs (admin_id, user_id, action, created_at) VALUES ($1, $2, $3, NOW())";
+        $action = ($status == 'approved') ? 'approve' : (($status == 'rejected') ? 'reject' : 'edit');
+        pg_query_params($conn, $log_query, [$_SESSION['user_id'], $user_id, $action]);
+        
         // Berhasil, redirect ke halaman tables.php
         header('Location: ../../public/admin/tables.php?msg=success');
     } else {

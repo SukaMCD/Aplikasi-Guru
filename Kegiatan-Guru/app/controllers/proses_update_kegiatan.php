@@ -34,7 +34,6 @@ function checkTimeConflict($conn, $id_kegiatan, $tanggal = null, $jam_mulai = nu
         $id_guru = $guru_data['id_guru'];
     }
     
-    // Check for class conflict (same class, same date, overlapping time)
     $class_conflict_query = "
         SELECT k.id_kegiatan, k.jam_mulai, k.jam_selesai, 
                g.nama_guru, jk.nama_kegiatan, kl.tingkat, kl.jurusan
@@ -70,7 +69,6 @@ function checkTimeConflict($conn, $id_kegiatan, $tanggal = null, $jam_mulai = nu
         ];
     }
     
-    // Check for teacher conflict (same teacher, same date, overlapping time, different class)
     $teacher_conflict_query = "
         SELECT k.id_kegiatan, k.jam_mulai, k.jam_selesai, 
                g.nama_guru, jk.nama_kegiatan, kl.tingkat, kl.jurusan
@@ -153,6 +151,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 break;
 
             case 'guru':
+                $guru_check = pg_query_params($conn, 
+                    "SELECT g.id_guru FROM guru g 
+                     JOIN users u ON g.id_user = u.id_user 
+                     WHERE g.id_guru = $1 AND u.level = 'guru' AND u.status = 'approved'", 
+                    array($value));
+                if (!$guru_check || pg_num_rows($guru_check) === 0) {
+                    echo json_encode(['success' => false, 'message' => 'Guru tidak ditemukan atau belum disetujui']);
+                    exit();
+                }
+                
                 // Check for time conflict before updating guru
                 $conflict_result = checkTimeConflict($conn, $id_kegiatan, null, null, null, null);
                 if ($conflict_result['has_conflict']) {

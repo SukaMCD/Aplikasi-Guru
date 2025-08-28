@@ -44,10 +44,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     try {
-        // Check if guru exists
-        $guru_check = pg_query_params($conn, "SELECT id_guru FROM guru WHERE id_guru = $1", array($id_guru));
+        $guru_check = pg_query_params($conn, 
+            "SELECT g.id_guru FROM guru g 
+             JOIN users u ON g.id_user = u.id_user 
+             WHERE g.id_guru = $1 AND u.level = 'guru' AND u.status = 'approved'", 
+            array($id_guru));
         if (!$guru_check || pg_num_rows($guru_check) === 0) {
-            error_log("Guru not found: " . $id_guru);
+            error_log("Guru not found or not approved: " . $id_guru);
             header('Location: ../../public/admin/tambah_kegiatan.php?msg=error_invalid');
             exit();
         }
@@ -68,7 +71,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit();
         }
 
-        // Check for time conflict in the same class and date
         $class_conflict_query = "
             SELECT k.id_kegiatan, k.jam_mulai, k.jam_selesai, 
                    g.nama_guru, jk.nama_kegiatan, kl.tingkat, kl.jurusan
@@ -104,7 +106,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit();
         }
         
-        // Check for teacher conflict (same teacher, same date, overlapping time, different class)
         $teacher_conflict_query = "
             SELECT k.id_kegiatan, k.jam_mulai, k.jam_selesai, 
                    g.nama_guru, jk.nama_kegiatan, kl.tingkat, kl.jurusan

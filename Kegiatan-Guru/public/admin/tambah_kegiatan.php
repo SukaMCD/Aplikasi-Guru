@@ -7,7 +7,11 @@ if (!isset($_SESSION['user_id']) || $_SESSION['level'] !== 'admin') {
 
 include '../../config/koneksi.php';
 
-$guru_query = "SELECT id_guru, nama_guru FROM guru ORDER BY nama_guru";
+$guru_query = "SELECT g.id_guru, g.nama_guru, u.status 
+               FROM guru g 
+               JOIN users u ON g.id_user = u.id_user 
+               WHERE u.level = 'guru' AND u.status = 'approved' 
+               ORDER BY g.nama_guru";
 $guru_result = pg_query($conn, $guru_query);
 
 $tingkat_query = "SELECT DISTINCT tingkat FROM kelas ORDER BY tingkat";

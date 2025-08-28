@@ -6,13 +6,24 @@ $username = trim($_POST['username']);
 $email = trim($_POST['email']);
 $password = trim($_POST['password']);
 $confirm = trim($_POST['confirm_password']);
+$role = trim($_POST['role']);
 
 // Validasi field kosong
-if (empty($username) || empty($email) || empty($password) || empty($confirm)) {
+if (empty($username) || empty($email) || empty($password) || empty($confirm) || empty($role)) {
     echo json_encode([
         "status" => "error",
         "title" => "Gagal!",
         "message" => "Semua field harus diisi.",
+        "icon" => "error"
+    ]);
+    exit;
+}
+
+if (!in_array($role, ['guru', 'murid'])) {
+    echo json_encode([
+        "status" => "error",
+        "title" => "Gagal!",
+        "message" => "Role tidak valid.",
         "icon" => "error"
     ]);
     exit;
@@ -74,18 +85,14 @@ if (pg_num_rows($check_result) > 0) {
 // Hash password
 $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
-// Mengatur level menjadi 'murid' secara default
-$level = 'murid';
-
-// Insert user baru ke database
-$insert_query = "INSERT INTO users (username, email, password, level) VALUES ($1, $2, $3, $4)";
-$insert_result = pg_query_params($conn, $insert_query, [$username, $email, $hashed_password, $level]);
+$insert_query = "INSERT INTO users (username, email, password, level, status, created_at) VALUES ($1, $2, $3, $4, 'pending', NOW())";
+$insert_result = pg_query_params($conn, $insert_query, [$username, $email, $hashed_password, $role]);
 
 if ($insert_result) {
     echo json_encode([
         "status" => "success",
         "title" => "Berhasil!",
-        "message" => "Registrasi berhasil! Silakan login.",
+        "message" => "Registrasi berhasil! Akun Anda menunggu persetujuan admin. Anda akan dihubungi setelah akun disetujui.",
         "icon" => "success",
         "redirect" => "/KODINGAN/PWPB/Aplikasi-Guru/"
     ]);

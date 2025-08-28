@@ -33,15 +33,24 @@
               <div class="card card-plain">
                 <div class="card-header pb-0 text-start">
                   <h4 class="font-weight-bolder">Sign Up</h4>
-                  <p class="mb-0">Enter your information to create an account</p>
+                  <!-- Updated description to mention approval process -->
+                  <p class="mb-0">Enter your information to create an account. Your account will need admin approval.</p>
                 </div>
                 <div class="card-body">
                   <form role="form" id="register-form">
                     <div class="mb-3">
-                      <input type="text" name="username" class="form-control form-control-lg" placeholder="Username" aria-label="Username">
+                      <input type="text" name="username" class="form-control form-control-lg" placeholder="Username" aria-label="Username" required>
                     </div>
                     <div class="mb-3">
-                      <input type="email" name="email" class="form-control form-control-lg" placeholder="Email" aria-label="Email">
+                      <input type="email" name="email" class="form-control form-control-lg" placeholder="Email" aria-label="Email" required>
+                    </div>
+                    <!-- Added role selection dropdown -->
+                    <div class="mb-3">
+                      <select name="role" class="form-control form-control-lg" required>
+                        <option value="">Pilih Role</option>
+                        <option value="guru">Guru</option>
+                        <option value="murid">Murid</option>
+                      </select>
                     </div>
                     <div class="mb-3">
                       <input type="password" name="password" class="form-control form-control-lg" placeholder="Password" aria-label="Password" required minlength="6">
@@ -71,7 +80,7 @@
           background-size: cover;">
                 <span class="mask bg-gradient-primary opacity-6"></span>
                 <h4 class="mt-5 text-white font-weight-bolder position-relative">"Join our community today"</h4>
-                <p class="text-white position-relative">Create your account and start your journey with us. It's quick and easy!</p>
+                <p class="text-white position-relative">Create your account and start your journey with us. Admin approval required.</p>
               </div>
             </div>
           </div>
@@ -116,8 +125,8 @@
               title: data.title,
               text: data.message,
               icon: data.icon,
-              timer: 2000,
-              showConfirmButton: false
+              timer: 3000,
+              showConfirmButton: true
             }).then(() => {
               window.location.href = data.redirect;
             });

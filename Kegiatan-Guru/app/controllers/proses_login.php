@@ -44,6 +44,29 @@ if (!$result) {
 $user = pg_fetch_assoc($result);
 
 if ($user && password_verify($password, $user['password'])) {
+    if ($user['status'] !== 'approved') {
+        $status_message = '';
+        switch ($user['status']) {
+            case 'pending':
+                $status_message = 'Akun Anda masih menunggu persetujuan admin. Silakan hubungi administrator.';
+                break;
+            case 'rejected':
+                $status_message = 'Akun Anda telah ditolak. Silakan hubungi administrator untuk informasi lebih lanjut.';
+                break;
+            default:
+                $status_message = 'Status akun Anda tidak valid. Silakan hubungi administrator.';
+                break;
+        }
+        
+        echo json_encode([
+            'status' => 'error',
+            'title' => 'Akses Ditolak!',
+            'message' => $status_message,
+            'icon' => 'warning'
+        ]);
+        exit;
+    }
+
     // Regenerasi ID session untuk keamanan
     session_regenerate_id(true);
 

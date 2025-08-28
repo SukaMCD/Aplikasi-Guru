@@ -42,6 +42,8 @@ include '../../config/koneksi.php'; // Pastikan koneksi database sudah benar
   <link href="https://demos.creative-tim.com/argon-dashboard-pro/assets/css/bootstrap-icons.css" rel="stylesheet" />
   <!-- CSS Files -->
   <link id="pagestyle" href="../assets/css/argon-dashboard.css?v=2.1.0" rel="stylesheet" />
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body class="g-sidenav-show   bg-gray-100">
@@ -181,7 +183,16 @@ include '../../config/koneksi.php'; // Pastikan koneksi database sudah benar
             </li>
             <li class="nav-item dropdown pe-2 d-flex align-items-center">
               <a href="javascript:;" class="nav-link text-white p-0" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                <!-- Added notification badge for pending approvals -->
                 <i class="fa fa-bell cursor-pointer"></i>
+                <?php
+                $pending_query = "SELECT COUNT(*) as pending_count FROM users WHERE status = 'pending'";
+                $pending_result = pg_query($conn, $pending_query);
+                $pending_count = pg_fetch_assoc($pending_result)['pending_count'];
+                if ($pending_count > 0) {
+                  echo '<span class="badge badge-sm bg-gradient-danger position-absolute top-0 start-100 translate-middle">' . $pending_count . '</span>';
+                }
+                ?>
               </a>
             </li>
           </ul>
@@ -204,7 +215,14 @@ include '../../config/koneksi.php'; // Pastikan koneksi database sudah benar
               ?>
               <div class="d-flex justify-content-between">
                 <h6>User table (<?php echo $total_users; ?> total)</h6>
-                <a href="tambah_user.php" class="btn btn-sm btn-outline-primary">Tambah User</a>
+                <div>
+                  <!-- Added approval requests button next to add user button -->
+                  <button class="btn btn-sm btn-outline-warning me-2" data-bs-toggle="modal" data-bs-target="#approvalModal">
+                    <i class="fas fa-clock me-1"></i>Approval Requests
+                    <?php if ($pending_count > 0) echo '<span class="badge bg-danger ms-1">' . $pending_count . '</span>'; ?>
+                  </button>
+                  <a href="tambah_user.php" class="btn btn-sm btn-outline-primary">Tambah User</a>
+                </div>
               </div>
             </div>
             <div class="card-body px-0 pt-0 pb-2">
@@ -221,7 +239,7 @@ include '../../config/koneksi.php'; // Pastikan koneksi database sudah benar
                   <tbody>
                     <?php
                     // Query untuk mengambil semua data user + email, diurutkan berdasarkan id_user
-                    $query_users = "SELECT id_user, username, email, level FROM users ORDER BY id_user";
+                    $query_users = "SELECT id_user, username, email, level, status FROM users ORDER BY id_user";
                     $result_users = pg_query($conn, $query_users);
 
                     if ($result_users && pg_num_rows($result_users) > 0) {
@@ -239,6 +257,19 @@ include '../../config/koneksi.php'; // Pastikan koneksi database sudah benar
                         } elseif ($row['level'] == 'murid') {
                           $status_class = 'bg-gradient-primary';
                           $status_text = 'Murid';
+                        }
+
+                        $approval_badge = '';
+                        switch ($row['status']) {
+                          case 'pending':
+                            $approval_badge = '<span class="badge badge-sm bg-gradient-warning ms-1">Pending</span>';
+                            break;
+                          case 'approved':
+                            $approval_badge = '<span class="badge badge-sm bg-gradient-success ms-1">Approved</span>';
+                            break;
+                          case 'rejected':
+                            $approval_badge = '<span class="badge badge-sm bg-gradient-danger ms-1">Rejected</span>';
+                            break;
                         }
 
                     ?>
@@ -260,6 +291,7 @@ include '../../config/koneksi.php'; // Pastikan koneksi database sudah benar
                           </td>
                           <td class="align-middle text-center text-sm border-end">
                             <span class="badge badge-sm <?php echo $status_class; ?>"><?php echo $status_text; ?></span>
+                            <?php echo $approval_badge; ?>
                           </td>
                           <td class="align-middle text-center">
                             <a href="edit_user.php?id=<?php echo $row['id_user']; ?>" class="text-secondary font-weight-bold text-xs me-3" data-toggle="tooltip" data-original-title="Edit user">
@@ -549,6 +581,80 @@ include '../../config/koneksi.php'; // Pastikan koneksi database sudah benar
       </footer>
     </div>
   </main>
+
+  <!-- Added Approval Modal -->
+  <div class="modal fade" id="approvalModal" tabindex="-1" aria-labelledby="approvalModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="approvalModalLabel">
+            <i class="fas fa-clock me-2"></i>Approval Requests
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>Username</th>
+                  <th>Email</th>
+                  <th>Role</th>
+                  <th>Registered</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <?php
+                $pending_users_query = "SELECT id_user, username, email, level, created_at FROM users WHERE status = 'pending' ORDER BY created_at DESC";
+                $pending_users_result = pg_query($conn, $pending_users_query);
+                
+                if ($pending_users_result && pg_num_rows($pending_users_result) > 0) {
+                  while ($pending_user = pg_fetch_assoc($pending_users_result)) {
+                    $created_date = date('d/m/Y H:i', strtotime($pending_user['created_at']));
+                ?>
+                    <tr>
+                      <td class="font-weight-bold"><?php echo htmlspecialchars($pending_user['username']); ?></td>
+                      <td><?php echo htmlspecialchars($pending_user['email']); ?></td>
+                      <td>
+                        <span class="badge bg-<?php echo ($pending_user['level'] == 'guru') ? 'warning' : 'primary'; ?>">
+                          <?php echo ucfirst($pending_user['level']); ?>
+                        </span>
+                      </td>
+                      <td class="text-sm"><?php echo $created_date; ?></td>
+                      <td>
+                        <button class="btn btn-success btn-sm me-1" onclick="approveUser(<?php echo $pending_user['id_user']; ?>)">
+                          <i class="fas fa-check"></i> Approve
+                        </button>
+                        <button class="btn btn-danger btn-sm" onclick="rejectUser(<?php echo $pending_user['id_user']; ?>)">
+                          <i class="fas fa-times"></i> Reject
+                        </button>
+                      </td>
+                    </tr>
+                <?php
+                  }
+                } else {
+                ?>
+                  <tr>
+                    <td colspan="5" class="text-center py-4">
+                      <i class="fas fa-check-circle text-success fa-2x mb-2"></i>
+                      <p class="text-muted mb-0">No pending approval requests</p>
+                    </td>
+                  </tr>
+                <?php
+                }
+                ?>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="fixed-plugin">
     <a class="fixed-plugin-button text-dark position-fixed px-3 py-2">
       <i class="fa fa-cog py-2"> </i>
@@ -646,6 +752,90 @@ include '../../config/koneksi.php'; // Pastikan koneksi database sudah benar
         // Redirect ke halaman delete dengan ID user
         window.location.href = '../../app/controllers/proses_hapus_user.php?id=' + userId;
       }
+    }
+
+    function approveUser(userId) {
+      Swal.fire({
+        title: 'Approve User?',
+        text: 'Are you sure you want to approve this user?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#28a745',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, approve!'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          fetch('../../app/controllers/proses_approval.php', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: 'action=approve&user_id=' + userId
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.status === 'success') {
+              Swal.fire({
+                title: 'Approved!',
+                text: data.message,
+                icon: 'success',
+                timer: 1500,
+                showConfirmButton: false
+              }).then(() => {
+                location.reload();
+              });
+            } else {
+              Swal.fire('Error!', data.message, 'error');
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            Swal.fire('Error!', 'Something went wrong!', 'error');
+          });
+        }
+      });
+    }
+
+    function rejectUser(userId) {
+      Swal.fire({
+        title: 'Reject User?',
+        text: 'Are you sure you want to reject this user?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, reject!'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          fetch('../../app/controllers/proses_approval.php', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: 'action=reject&user_id=' + userId
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.status === 'success') {
+              Swal.fire({
+                title: 'Rejected!',
+                text: data.message,
+                icon: 'success',
+                timer: 1500,
+                showConfirmButton: false
+              }).then(() => {
+                location.reload();
+              });
+            } else {
+              Swal.fire('Error!', data.message, 'error');
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            Swal.fire('Error!', 'Something went wrong!', 'error');
+          });
+        }
+      });
     }
   </script>
   <!-- Bootstrap Icons -->

@@ -1,2 +1,5 @@
+# Aktifkan rewrite engine
 RewriteEngine On
+
+# Arahkan halaman utama ke file login
 RewriteRule ^$ Kegiatan-Guru/public/auth/login.php [L]

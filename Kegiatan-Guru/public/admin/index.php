@@ -406,15 +406,14 @@ include '../../config/koneksi.php'; // Pastikan koneksi database sudah benar
             <div class="card-header pb-0 p-3">
               <div class="d-flex justify-content-between">
                 <?php
-                // Query untuk menghitung total user asli
                 $query_total = "SELECT COUNT(*) as total FROM users";
                 $result_total = pg_query($conn, $query_total);
                 $total_users = pg_fetch_assoc($result_total)['total'];
 
-                // Query untuk mengambil data user (maksimal 5)
-                $query_users = "SELECT id_user, username, level FROM users ORDER BY id_user LIMIT 5";
+                $query_users = "SELECT id_user, username, email, level FROM users ORDER BY id_user LIMIT 5";
                 $result_users = pg_query($conn, $query_users);
                 ?>
+
                 <h6 class="mb-2">User (<?php echo $total_users; ?> total)</h6>
                 <a href="tables.php" class="btn btn-sm btn-outline-primary">Lihat Semua</a>
               </div>
@@ -431,9 +430,6 @@ include '../../config/koneksi.php'; // Pastikan koneksi database sudah benar
                 </thead>
                 <tbody>
                   <?php
-                  $query_users = "SELECT id_user, username, email, level FROM users";
-                  $result_users = pg_query($conn, $query_users);
-
                   if ($result_users && pg_num_rows($result_users) > 0) {
                     $no = 1;
                     while ($row = pg_fetch_assoc($result_users)) {

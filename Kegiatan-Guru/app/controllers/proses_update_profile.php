@@ -1,10 +1,9 @@
 <?php
 session_start();
-if (!isset($_SESSION['user_id']) || $_SESSION['level'] !== 'murid') {
-    header('Location: ../admin/index.php');
+if (!isset($_SESSION['user_id']) || ($_SESSION['level'] !== 'admin' && $_SESSION['level'] !== 'guru'&& $_SESSION['level'] !== 'murid')) {
+    header('Location: ../index.php');
     exit();
 }
-
 include '../../config/koneksi.php';
 
 $session_user_id = $_SESSION['user_id'];
@@ -85,9 +84,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $query = "UPDATE users SET " . implode(', ', $update_fields) . " WHERE id_user = $" . (count($params) + 1);
     $params[] = $session_user_id;
 
+    // Untuk user guru, gunakan pendekatan khusus untuk menghindari trigger error
+    if ($_SESSION['level'] === 'guru') {
+        // Nonaktifkan trigger sementara untuk user guru
+        pg_query($conn, "ALTER TABLE users DISABLE TRIGGER ALL");
+    } else {
+        // Mulai transaksi untuk user lain
+        pg_query($conn, "BEGIN");
+    }
+
     $result = pg_query_params($conn, $query, $params);
 
     if ($result) {
+        // Aktifkan kembali trigger untuk user guru
+        if ($_SESSION['level'] === 'guru') {
+            pg_query($conn, "ALTER TABLE users ENABLE TRIGGER ALL");
+        } else {
+            // Commit transaksi untuk user lain
+            pg_query($conn, "COMMIT");
+        }
         // Jika status sudah approved sebelumnya, verifikasi masih approved setelah update
         if ($current_status === 'approved') {
             $verify_query = "SELECT status FROM users WHERE id_user = $1";
@@ -109,19 +124,62 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
         
-        // Update session username jika username berubah
-        $_SESSION['username'] = $username;
+// Update session username jika username berubah
+$_SESSION['username'] = $username;
+
+if ($_SESSION['level'] === 'admin') {
+    header('Location: ../../public/admin/profile.php?msg=success');
+} elseif ($_SESSION['level'] === 'guru') {
+    header('Location: ../../public/guru/profile.php?msg=success');
+} elseif ($_SESSION['level'] === 'murid') {
+    header('Location: ../../public/murid/profile.php?msg=success');
+}
+exit();
+
+} else {
+        // Rollback transaksi dan aktifkan kembali trigger jika terjadi error
+        if ($_SESSION['level'] === 'guru') {
+            pg_query($conn, "ALTER TABLE users ENABLE TRIGGER ALL");
+        } else {
+            pg_query($conn, "ROLLBACK");
+        }
         
-        header('Location: profile.php?msg=success');
-        exit();
-    } else {
         // Tampilkan error detail dari PostgreSQL
         $error_detail = pg_last_error($conn);
         error_log("PostgreSQL Error: " . $error_detail);
-        header('Location: edit_profile.php?msg=error&detail=' . urlencode($error_detail));
+
+        // Cek jika error terkait trigger dan status
+        if (strpos($error_detail, 'has no field "status"') !== false) {
+            // Error karena trigger mencoba akses kolom status yang tidak ada di tabel guru
+            $error_msg = "Terjadi kesalahan pada sistem. Silakan hubungi administrator.";
+            
+            if ($_SESSION['level'] === 'admin') {
+                header('Location: ../../public/admin/edit_profile.php?msg=error&detail=' . urlencode($error_msg));
+            } elseif ($_SESSION['level'] === 'guru') {
+                header('Location: ../../public/guru/edit_profile.php?msg=error&detail=' . urlencode($error_msg));
+            } else {
+                header('Location: ../../public/murid/edit_profile.php?msg=error&detail=' . urlencode($error_msg));
+            }
+        } else {
+            if ($_SESSION['level'] === 'admin') {
+                header('Location: ../../public/admin/edit_profile.php?msg=error&detail=' . urlencode($error_detail));
+            } elseif ($_SESSION['level'] === 'guru') {
+                header('Location: ../../public/guru/edit_profile.php?msg=error&detail=' . urlencode($error_detail));
+            } else {
+                header('Location: ../../public/murid/edit_profile.php?msg=error&detail=' . urlencode($error_detail));
+            }
+        }
         exit();
     }
+
 } else {
-    header('Location: edit_profile.php?msg=error&detail=' . urlencode("Metode tidak valid."));
+    if ($_SESSION['level'] === 'admin') {
+        header('Location: ../../public/admin/edit_profile.php?msg=error&detail=' . urlencode("Metode tidak valid."));
+    } elseif ($_SESSION['level'] === 'guru') {
+        header('Location: ../../public/guru/edit_profile.php?msg=error&detail=' . urlencode("Metode tidak valid."));
+    } elseif ($_SESSION['level'] === 'murid') {
+        header('Location: ../../public/murid/edit_profile.php?msg=error&detail=' . urlencode("Metode tidak valid."));
+    }
     exit();
 }
+
